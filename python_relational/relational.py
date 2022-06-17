@@ -2,11 +2,10 @@
 
 from random import choice, randint, randrange
 
-sizeX, sizeY = (36, 9)
-unused_pos = []
+sizeX, sizeY = (18, 18)
+# sizeX, sizeY = (36, 9)
 dirs = ((0,-1), (1, 0), (0, 1), (-1, 0))
-h_dirs = sorted([(0, -1), (0, 1)])
-v_dirs = sorted([(-1, 0), (1, 0)])
+unused_pos = []
 for y in range(sizeY):
     for x in range(sizeX):
         unused_pos.append((x, y))
@@ -29,13 +28,12 @@ class tunnel:
         self.points[pos2] = p2
 
 
-def coord(n):
-    return n * 2 + 1
-
-
 def show(laby):
+    def coord(n):
+        return n * 2 + 1
+
     li = [coord(sizeX) * ['#'] for _ in range(coord(sizeY))]
-    later = []
+    bridge = []
     for p in laby.points.values():
         x, y = coord(p.pos[0]), coord(p.pos[1])
         li[y][x] = ' '
@@ -45,8 +43,8 @@ def show(laby):
                 x_mean, y_mean = (x + xc) // 2, (y + yc) // 2
                 li[y_mean][x_mean] = ' '
             elif xc - x == 4 or yc - y == 4:
-                later.append(((x,y), (xc, yc)))
-    for (x, y), (xc, yc) in later:
+                bridge.append(((x,y), (xc, yc)))
+    for (x, y), (xc, yc) in bridge:
         if y == yc:
             for rx in range(x+1, xc):
                 li[y][rx] = ' '
@@ -61,6 +59,65 @@ def show(laby):
     li[0][1] = ' '
     li[-1][-2] = ' '
     print("\n".join(["".join(elem) for elem in li]))
+
+def paint(laby, b_size=40, pensize=7):
+    def draw_bridge(b_size):
+        t.begin_fill()
+        t.pendown()
+        t.forward(b_size*1.2)
+        t.left(90)
+        t.penup()
+        t.forward(b_size*0.6)
+        t.pendown()
+        t.left(90)
+        t.forward(b_size*1.2)
+        t.end_fill()
+
+    import turtle as t
+    t.speed(0)
+    t.tracer(0)
+    # t.shapesize(0.01)
+    t.hideturtle()
+    t.pensize(pensize)
+    screen = t.Screen()
+    width, height = sizeX * b_size + 40 , sizeY * b_size + 40
+    screen.setup(width, height, width // 2, height // 2)
+    bridge_h, bridge_v = [], []
+    x_off, y_off = -width / 2 + 20, height / 2 - 20
+    for y in range(sizeY+1):
+        for x in range(sizeX+1):
+            p = laby.points.get((x, y), None)
+            if (not p or not (x, y-1) in p.connect) and x < sizeX and not (x, y) in [(0, 0), (sizeX-1, sizeY)]:
+                t.penup()
+                t.goto(x*b_size+x_off, y*-b_size+y_off)
+                t.setheading(0)
+                t.pendown()
+                t.forward(b_size)
+            if (not p or not (x-1, y) in p.connect) and y < sizeY:
+                t.penup()
+                t.goto(x*b_size+x_off, y*-b_size+y_off)
+                t.setheading(270)
+                t.pendown()
+                t.forward(b_size)
+            if (p and (x+2, y) in p.connect):
+                bridge_h.append((x, y))
+            if (p and (x  , y+2) in p.connect):
+                bridge_v.append((x, y))
+    t.pensize(int(pensize*0.70))
+    t.fillcolor("white")
+    for x, y in bridge_v:
+        t.penup()
+        t.goto(x * b_size + x_off + b_size*0.2, y * -b_size + y_off - b_size*0.9)
+        t.setheading(270)
+        draw_bridge(b_size)
+    for x, y in bridge_h:
+        t.penup()
+        t.goto(x * b_size + x_off + b_size*0.9, y * -b_size + y_off - b_size*0.8)
+        t.setheading(0)
+        draw_bridge(b_size)
+    t.update()
+    # t.mainloop()
+    screen.exitonclick()
 
 
 def all_h_connections(pos):
@@ -105,7 +162,7 @@ def dig_labyrinth():
                             if all_h_connections(n_point):
                                 avaiPos.append(epos)
             if len(avaiPos) == 0: break
-            if len(avaiPos) > 1 and dig not in jumpPos: jumpPos.append(dig)
+            if len(avaiPos) > 0 and dig not in jumpPos: jumpPos.append(dig)
 
             dpos = choice(avaiPos)
             unused_pos.remove(dpos)
@@ -140,4 +197,7 @@ def laby_vertical_bridge():
 # laby = laby_horizontal_bridge()
 # laby = laby_vertical_bridge()
 laby = dig_labyrinth()
+# laby.add((0, -1), (0, 0))
+# laby.add((sizeX-1, sizeY-1), (sizeX-1, sizeY))
 show(laby)
+paint(laby)
