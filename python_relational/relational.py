@@ -155,7 +155,6 @@ def paint(laby, b_size=40, pensize=7, way=None, crosspoint=None, solution=None):
     if crosspoint:
         t.shape("circle")
         t.shapesize(1)
-
         for p in crosspoint:
             x, y = p
             t.goto(conv_x(x, 0.5), conv_y(y, 0.5))
@@ -252,18 +251,15 @@ def solve_labyrinth(laby):
             elif len(avaiPos) > 1:
                 jumpPos.append(cur_pos)
                 cross_point.append(cur_pos)
-                if cur_pos not in cur_ancestor:
-                    cur_ancestor.append(cur_pos)
-                    # print("N " + str(cur_ancestor))
-                cp_ancestor[cur_pos] = copy.copy(cur_ancestor)
             next_pos = avaiPos.pop()
             way.add(cur_pos, next_pos, str(way_int))
             cur_pos = next_pos
+            cur_ancestor.append(cur_pos)
+            cp_ancestor[cur_pos] = copy.copy(cur_ancestor)
         way_int += 1
         if len(jumpPos) == 0: break
         cur_pos = jumpPos.pop()
         cur_ancestor = cp_ancestor[cur_pos]
-        # print("P " + str(cur_ancestor))
     return way, cross_point, solution
 
 def laby_horizontal_bridge():
@@ -292,7 +288,9 @@ def laby_vertical_bridge():
 laby = dig_labyrinth()
 # way, crosspoint = None, None
 way, crosspoint, solution = solve_labyrinth(laby)
+print("Solution: " + str(solution))
 # laby.add((0, -1), (0, 0))
 # laby.add((sizeX-1, sizeY-1), (sizeX-1, sizeY))
 # show(laby, way)
-paint(laby, way=way, crosspoint=crosspoint, solution=solution)
+# paint(laby, way=way, crosspoint=crosspoint, solution=solution)
+paint(laby, solution=solution)
