@@ -11,49 +11,95 @@
 import turtle as t
 import math
 
-# radius = 100
-length = 100
 
-
-# def arc(radius=radius, length=length):
-#     winkel = math.atan2(length/2, radius - (length/2)) * 180.0 / math.pi
-#     # winkel = math.atan2(length/2, l2 - (length/2)) * 180.0 / math.pi
-#     # umfang = radius * 2 * (winkel / (180.0 / math.pi))
-#     print("Winkel: " + str(winkel)) #  + ", Umfang: " + str(umfang))
-#     t.hideturtle()
-#     t.setheading(90)
-#     t.right(winkel)
-#     t.circle(radius, winkel * 2)
-#     # Ausgangswerte zum Vergleich nachzeichnen
-#     t.penup()
-#     t.goto(0,0)
-#     t.setheading(90)
-#     t.pendown()
-#     t.forward(length)
-
-def arc2(h, s):
-    r = (h ** 2 + (s / 2) ** 2) / (2 * h)
-    winkel = math.atan2(s / 2, r - h) * 180.0 / math.pi
-    print("Winkel: " + str(winkel))
-    print("r: " + str(r))
+def arc(height, length, measure=False):
+    abs_height = abs(height)
+    radius = (abs_height ** 2 + (length / 2) ** 2) / (2 * abs_height)
+    winkel = math.atan2(length / 2, radius - abs_height) * 180.0 / math.pi
     t.hideturtle()
-    t.setheading(90)
-    t.right(winkel)
-    t.circle(r, winkel * 2)
-    # Ausgangswerte zum Vergleich nachzeichnen
-    t.penup()
-    t.goto(0,0)
-    t.setheading(90)
-    t.pendown()
-    t.forward(s)
-    t.penup()
-    t.goto(0,s//2)
-    t.setheading(0)
-    t.pendown()
-    t.forward(h)
+    orig_heading = t.heading()
+    if height > 0:
+        t.right(winkel)
+        t.circle(radius, winkel * 2)
+    else:
+        t.left(winkel)
+        t.circle(-radius, winkel * 2)
+    t.setheading(orig_heading)
+    if measure:
+        # Ausgangswerte zum Vergleich nachzeichnen
+        t.penup()
+        t.goto(0,0)
+        t.setheading(orig_heading)
+        t.pendown()
+        t.forward(length)
+        t.penup()
+        t.goto(0, 0)
+        t.forward(length // 2)
+        t.setheading(orig_heading)
+        t.right(90)
+        t.pendown()
+        t.forward(height)
 
-# arc(radius, length)
-arc2(30, length)
+
+def bridge(length, height, width, fill=True, pen_size=3):
+    if fill:
+        t.color("white", "white")
+        t.begin_fill()
+    else:
+        t.color("black", "white")
+    if not fill:
+        t.pensize(pen_size)
+    arc(height, length)
+    t.right(90)
+    t.pensize(1)
+    if not fill:
+        t.color("white")
+    t.forward(width)
+    t.right(90)
+    if not fill:
+        t.color("black")
+    t.pensize(pen_size)
+    arc(-height, length)
+    t.right(90)
+    t.pensize(1)
+    if not fill:
+        t.color("white")
+    t.forward(width)
+    t.right(90)
+    if fill:
+        t.end_fill()
+    t.color("black")
+
+
+def bridge_shadow(length, height, width, color=3*[0.8]):
+    t.color(color, color)
+    t.begin_fill()
+    for _ in range(2):
+        t.forward(length)
+        t.right(90)
+        t.forward(width)
+        t.right(90)
+    t.end_fill()
+
+
+length = 100
+height = 15
+width  = length * 0.6
+
+# t.speed(0)
+t.tracer(0)
+
+t.setheading(90)
+bridge_shadow(length, height, width)
+bridge(length, height, width)
+bridge(length, height, width, False)
+
+t.setheading(180)
+bridge_shadow(length, height, width)
+bridge(length, height, width)
+bridge(length, height, width, False)
+
+t.update()
 
 s = t.Screen()
 s.exitonclick()
