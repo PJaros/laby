@@ -16,7 +16,6 @@ def arc(height, length, measure=False):
     abs_height = abs(height)
     radius = (abs_height ** 2 + (length / 2) ** 2) / (2 * abs_height)
     winkel = math.atan2(length / 2, radius - abs_height) * 180.0 / math.pi
-    t.hideturtle()
     orig_heading = t.heading()
     if height > 0:
         t.right(winkel)
@@ -49,7 +48,7 @@ def bridge(length, height, width, fill=True, pen_size=3):
         t.color("black", "white")
     if not fill:
         t.pensize(pen_size)
-    arc(height, length)
+    arc(-height, length)
     t.right(90)
     t.pensize(1)
     if not fill:
@@ -59,7 +58,7 @@ def bridge(length, height, width, fill=True, pen_size=3):
     if not fill:
         t.color("black")
     t.pensize(pen_size)
-    arc(-height, length)
+    arc(height, length)
     t.right(90)
     t.pensize(1)
     if not fill:
@@ -71,7 +70,7 @@ def bridge(length, height, width, fill=True, pen_size=3):
     t.color("black")
 
 
-def bridge_shadow(length, height, width, color=3*[0.8]):
+def bridge_shadow(length, height, width, color=(0.8, 0.8, 0.8)):
     t.color(color, color)
     t.begin_fill()
     for _ in range(2):
@@ -88,13 +87,13 @@ width  = length * 0.6
 
 # t.speed(0)
 t.tracer(0)
+t.hideturtle()
 
-t.setheading(90)
 bridge_shadow(length, height, width)
 bridge(length, height, width)
 bridge(length, height, width, False)
 
-t.setheading(180)
+t.right(90)
 bridge_shadow(length, height, width)
 bridge(length, height, width)
 bridge(length, height, width, False)
