@@ -242,7 +242,7 @@ def solve_labyrinth(laby):
     jumpPos = []
     cross_point = []
     cp_ancestor = {(0,0):[]}
-    cur_ancestor = [(0,0)]
+    cur_ancestor = []
     way_int = 0
     solution = None
 
@@ -252,6 +252,7 @@ def solve_labyrinth(laby):
                 untested.remove(cur_pos)
             if cur_pos == (sizeX-1, sizeY-1):
                 solution = copy.copy(cur_ancestor)
+                solution.append((sizeX-1, sizeY-1))
             avaiPos = []
             for npos in laby.points[cur_pos].connect.keys():
                 if npos in untested:
@@ -261,11 +262,11 @@ def solve_labyrinth(laby):
             elif len(avaiPos) > 1:
                 jumpPos.append(cur_pos)
                 cross_point.append(cur_pos)
-            cur_ancestor.append(cur_pos)
             next_pos = avaiPos.pop()
             way.add(cur_pos, next_pos, str(way_int))
-            cur_pos = next_pos
             cp_ancestor[cur_pos] = copy.copy(cur_ancestor)
+            cur_ancestor.append(cur_pos)
+            cur_pos = next_pos
         way_int += 1
         if len(jumpPos) == 0: break
         cur_pos = jumpPos.pop()
