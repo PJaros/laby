@@ -12,7 +12,7 @@ import turtle as t
 import math
 
 
-def arc(height, length, measure=False):
+def arc(height, length):
     abs_height = abs(height)
     radius = (abs_height ** 2 + (length / 2) ** 2) / (2 * abs_height)
     winkel = math.atan2(length / 2, radius - abs_height) * 180.0 / math.pi
@@ -24,20 +24,6 @@ def arc(height, length, measure=False):
         t.left(winkel)
         t.circle(-radius, winkel * 2)
     t.setheading(orig_heading)
-    if measure:
-        # Ausgangswerte zum Vergleich nachzeichnen
-        t.penup()
-        t.goto(0,0)
-        t.setheading(orig_heading)
-        t.pendown()
-        t.forward(length)
-        t.penup()
-        t.goto(0, 0)
-        t.forward(length // 2)
-        t.setheading(orig_heading)
-        t.right(90)
-        t.pendown()
-        t.forward(height)
 
 
 def bridge(length, height, width, fill=True, pen_size=3):
@@ -50,24 +36,28 @@ def bridge(length, height, width, fill=True, pen_size=3):
         t.pensize(pen_size)
     arc(-height, length)
     t.right(90)
-    t.pensize(1)
+    # t.pensize(1)
     if not fill:
-        t.color("white")
+        t.penup()
+        # t.color("white")
     t.forward(width)
     t.right(90)
     if not fill:
-        t.color("black")
+        t.pendown()
+        # t.color("black")
     t.pensize(pen_size)
     arc(height, length)
     t.right(90)
     t.pensize(1)
     if not fill:
-        t.color("white")
+        t.penup()
+        # t.color("white")
     t.forward(width)
     t.right(90)
     if fill:
         t.end_fill()
     t.color("black")
+    t.pendown()
 
 
 def bridge_shadow(length, height, width, color=(0.8, 0.8, 0.8)):
@@ -85,7 +75,7 @@ length = 100
 height = 15
 width  = length * 0.6
 
-# t.speed(0)
+# t.speed(1)
 t.tracer(0)
 t.hideturtle()
 
