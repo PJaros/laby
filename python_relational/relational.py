@@ -81,35 +81,33 @@ def paint(laby, b_size=40, pensize=7, way=None, crosspoint=None, solution=None):
     import turtle as t
     import math
 
+    class bridge_data:
+        def __init__(self, x1, y1, x2, y2):
+            self.x1 = x1
+            self.y1 = y1
+            self.x2 = x2
+            self.y2 = y2
+            self.is_h = (y1 == y2)
+
     t.speed(0)
     t.tracer(0)
-    # t.shapesize(0.01)
     t.hideturtle()
     t.pensize(pensize)
     screen = t.Screen()
     width, height = sizeX * b_size + 40 , sizeY * b_size + 40
     screen.setup(width, height, width // 2, height // 2)
-    bridge_h, bridge_v = [], []
+    bridge = []
     x_off, y_off = -width / 2 + 20, height / 2 - 20
     for y in range(sizeY + 1):
-        for x in range(sizeX + 1):
-            p = laby.points.get((x, y), None)
-            if (p and (x + 2, y) in p.connect):
-                bridge_h.append((x, y))
-            if (p and (x, y + 2) in p.connect):
-                bridge_v.append((x, y))
-
-    # def draw_bridge(b_size):
-    #     t.begin_fill()
-    #     t.pendown()
-    #     t.forward(b_size*1.2)
-    #     t.left(90)
-    #     t.penup()
-    #     t.forward(b_size*0.6)
-    #     t.pendown()
-    #     t.left(90)
-    #     t.forward(b_size*1.2)
-    #     t.end_fill()
+        for x in range(sizeX, -1, -1):
+            p_up = laby.points.get((x, y - 1), None)
+            p_down  = (x, y + 1)
+            p_left  = laby.points.get((x - 1, y), None)
+            p_right = (x + 1, y)
+            if (p_left and p_right in p_left.connect):
+                bridge.append(bridge_data(p_left.pos[0], p_left.pos[1], p_right[0], p_right[1]))
+            if (p_up and p_down in p_up.connect):
+                bridge.append(bridge_data(p_up.pos[0], p_up.pos[1], p_down[0],  p_down[1]))
 
     def arc(height, length):
         abs_height = abs(height)
@@ -124,7 +122,7 @@ def paint(laby, b_size=40, pensize=7, way=None, crosspoint=None, solution=None):
             t.circle(-radius, winkel * 2)
         t.setheading(orig_heading)
 
-    def bridge(length, height, width, fill=True, pen_size=3):
+    def bridge_arc(length, height, width, fill=True, pen_size=3):
         if fill:
             t.color("white", "white")
             t.begin_fill()
@@ -188,37 +186,39 @@ def paint(laby, b_size=40, pensize=7, way=None, crosspoint=None, solution=None):
                     t.pendown()
                     t.forward(b_size)
 
-    def p_laby_bridge(laby, t=t, b_size=b_size, pensize=pensize):
+    def p_laby_bridge(bridge, t=t, b_size=b_size, rel_width=0.4, pensize=pensize*0.5):
         t.pensize(int(pensize*0.70))
         t.fillcolor("white")
-        for x, y in bridge_v:
+        width = b_size * rel_width
+        rel_lo = (1 - rel_width) / 2
+        rel_hi = 1 - rel_lo
+        print(f"rel_hi: {rel_hi}, rel_lo: {rel_lo}")
+        for b in bridge:
+            x, y = b.x1, b.y1
             t.penup()
-            t.setheading(270)
-            t.goto(conv_x(x, 0.9), conv_y(y, 0.9))
-            bridge(length=b_size*1.2, width=b_size*0.6, height=b_size*1.2*0.15, pen_size=int(pensize*0.70), fill=True)
-            bridge(length=b_size*1.2, width=b_size*0.6, height=b_size*1.2*0.15, pen_size=int(pensize*0.70), fill=False)
-            # t.goto(conv_x(x, 0.2), conv_y(y, 0.9))
-            # draw_bridge(b_size)
-        for x, y in bridge_h:
-            t.penup()
-            t.setheading(0)
-            t.goto(conv_x(x, 0.9), conv_y(y, 0.2))
-            bridge(length=b_size*1.2, width=b_size*0.6, height=b_size*1.2*0.15, pen_size=int(pensize*0.70), fill=True)
-            bridge(length=b_size*1.2, width=b_size*0.6, height=b_size*1.2*0.15, pen_size=int(pensize*0.70), fill=False)
-            # t.goto(conv_x(x, 0.9), conv_y(y, 0.8))
-            # draw_bridge(b_size)
+            if not b.is_h:
+                t.setheading(270)
+                t.goto(conv_x(x, rel_hi), conv_y(y, 0.9))
+            else:
+                t.setheading(0)
+                t.goto(conv_x(x, 0.9), conv_y(y, rel_lo))
+            bridge_arc(length=b_size*1.2, width=width, height=b_size*0.1, pen_size=int(pensize), fill=True)
+            bridge_arc(length=b_size*1.2, width=width, height=b_size*0.1, pen_size=int(pensize), fill=False)
 
-    def p_laby_bridge_shadow(laby, t=t, b_size=b_size):
-        for x, y in bridge_v:
+    def p_laby_bridge_shadow(bridge=bridge, t=t, b_size=b_size, rel_width=0.4):
+        width = b_size * rel_width
+        rel_lo = (1 - rel_width) / 2
+        rel_hi = 1 - rel_lo
+        for b in bridge:
+            x, y = b.x1, b.y1
             t.penup()
-            t.setheading(270)
-            t.goto(conv_x(x, 0.9), conv_y(y, 0.9))
-            bridge_shadow(length=b_size*1.2, width=b_size*0.6)
-        for x, y in bridge_h:
-            t.penup()
-            t.setheading(0)
-            t.goto(conv_x(x, 0.9), conv_y(y, 0.2))
-            bridge_shadow(length=b_size*1.2, width=b_size*0.6)
+            if not b.is_h:
+                t.setheading(270)
+                t.goto(conv_x(x, rel_hi), conv_y(y, 0.9))
+            else:
+                t.setheading(0)
+                t.goto(conv_x(x, 0.9), conv_y(y, rel_lo))
+            bridge_shadow(length=b_size*1.2, width=width)
 
     def p_crosspoint_way(laby, t=t, b_size=b_size, pensize=pensize, crosspoint=crosspoint, way=way):
         t.penup()
@@ -245,15 +245,14 @@ def paint(laby, b_size=40, pensize=7, way=None, crosspoint=None, solution=None):
                 if not t.isdown(): t.pendown()
 
     def on_click_solution(x, y):
-        # print("on_click_solution")
         p_solution(solution)
         t.update()
         screen.exitonclick()
 
 
-    p_laby_bridge_shadow(laby)
+    p_laby_bridge_shadow(bridge)
     p_laby_base(laby)
-    p_laby_bridge(laby)
+    p_laby_bridge(bridge)
     p_crosspoint_way(laby, crosspoint=crosspoint, way=way)
     # p_solution(solution)
     t.update()
@@ -261,23 +260,23 @@ def paint(laby, b_size=40, pensize=7, way=None, crosspoint=None, solution=None):
     screen.onclick(on_click_solution)
     screen.mainloop()
 
-def all_h_connections(pos):
-    if not len(pos.connect) == 2:
-        return False
-    for p in pos.connect.keys():
-        if not pos.pos[0] == p[0]:
-            return False
-    return True
-
-def all_v_connections(pos):
-    if not len(pos.connect) == 2:
-        return False
-    for p in pos.connect.keys():
-        if not pos.pos[1] == p[1]:
-            return False
-    return True
-
 def dig_labyrinth():
+    def all_h_connections(pos):
+        if not len(pos.connect) == 2:
+            return False
+        for p in pos.connect.keys():
+            if not pos.pos[0] == p[0]:
+                return False
+        return True
+
+    def all_v_connections(pos):
+        if not len(pos.connect) == 2:
+            return False
+        for p in pos.connect.keys():
+            if not pos.pos[1] == p[1]:
+                return False
+        return True
+
     unused_pos = []
     for y in range(sizeY):
         for x in range(sizeX):
@@ -362,6 +361,17 @@ def laby_horizontal_bridge():
     laby.add((2, 1), (0, 1))
     return laby
 
+def laby_hv_bridge():
+    laby = tunnel()
+    laby.add((0, 0), (1, 0))
+    laby.add((1, 0), (1, 1))
+    laby.add((1, 1), (1, 2))
+    laby.add((1, 2), (2, 2))
+    laby.add((2, 2), (2, 1))
+    laby.add((2, 1), (0, 1))
+    laby.add((0, 0), (0, 2))
+    return laby
+
 def laby_vertical_bridge():
     laby = tunnel()
     laby.add((0, 0), (0, 1))
@@ -374,6 +384,7 @@ def laby_vertical_bridge():
 
 
 # laby = laby_horizontal_bridge()
+# laby = laby_hv_bridge()
 # laby = laby_vertical_bridge()
 # way, crosspoint = None, None
 # paint(laby)
@@ -387,10 +398,10 @@ for _ in range(20):
         max_length = len(solution)
         cur_laby, cur_solution = laby, solution
 print("Solution: " + str(len(cur_solution)) + ", " + str(cur_solution))
+paint(cur_laby, solution=cur_solution)
 
 # show(laby)
 # show(laby, way)
 # paint(laby, way=way, crosspoint=crosspoint, solution=solution)
 # paint(laby, solution=solution)
-paint(cur_laby, solution=cur_solution)
 # paint(cur_laby)
