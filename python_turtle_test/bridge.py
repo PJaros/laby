@@ -36,22 +36,18 @@ def bridge(length, height, width, fill=True, pen_size=3):
         t.pensize(pen_size)
     arc(-height, length)
     t.right(90)
-    # t.pensize(1)
     if not fill:
         t.penup()
-        # t.color("white")
     t.forward(width)
     t.right(90)
     if not fill:
         t.pendown()
-        # t.color("black")
     t.pensize(pen_size)
     arc(height, length)
     t.right(90)
     t.pensize(1)
     if not fill:
         t.penup()
-        # t.color("white")
     t.forward(width)
     t.right(90)
     if fill:
@@ -60,7 +56,7 @@ def bridge(length, height, width, fill=True, pen_size=3):
     t.pendown()
 
 
-def bridge_shadow(length, height, width, color=(0.8, 0.8, 0.8)):
+def bridge_shadow(length, width, color=(0.8, 0.8, 0.8)):
     t.color(color, color)
     t.begin_fill()
     for _ in range(2):
@@ -79,12 +75,12 @@ width  = length * 0.6
 t.tracer(0)
 t.hideturtle()
 
-bridge_shadow(length, height, width)
+bridge_shadow(length, width)
 bridge(length, height, width)
 bridge(length, height, width, False)
 
 t.right(90)
-bridge_shadow(length, height, width)
+bridge_shadow(length, width)
 bridge(length, height, width)
 bridge(length, height, width, False)
 
