@@ -18,7 +18,7 @@ if False:
 sizeX, sizeY = (14, 14)
 # sizeX, sizeY = (18, 18)
 # sizeX, sizeY = (36, 9)
-# sizeX, sizeY = (36, 36)
+# sizeX, sizeY = (36, 24)
 dirs = ((0,-1), (1, 0), (0, 1), (-1, 0))
 
 class tunnel_point:
@@ -192,7 +192,7 @@ def paint(laby, b_size=40, pensize=7, way=None, crosspoint=None, solution=None):
         width = b_size * rel_width
         rel_lo = (1 - rel_width) / 2
         rel_hi = 1 - rel_lo
-        print(f"rel_hi: {rel_hi}, rel_lo: {rel_lo}")
+        # print(f"rel_hi: {rel_hi}, rel_lo: {rel_lo}")
         for b in bridge:
             x, y = b.x1, b.y1
             t.penup()
@@ -262,7 +262,7 @@ def paint(laby, b_size=40, pensize=7, way=None, crosspoint=None, solution=None):
 
 def dig_labyrinth():
     def all_h_connections(pos):
-        if not len(pos.connect) == 2:
+        if not len(pos.connect) >= 1:
             return False
         for p in pos.connect.keys():
             if not pos.pos[0] == p[0]:
@@ -270,7 +270,7 @@ def dig_labyrinth():
         return True
 
     def all_v_connections(pos):
-        if not len(pos.connect) == 2:
+        if not len(pos.connect) >= 1:
             return False
         for p in pos.connect.keys():
             if not pos.pos[1] == p[1]:
@@ -296,7 +296,7 @@ def dig_labyrinth():
                 else:
                     epos = dig[0] + d[0]*2, dig[1] + d[1]*2
                     n_point = laby.points.get(npos, None)
-                    if n_point and epos in unused_pos and randrange(0, 3) == 0:
+                    if n_point and epos in unused_pos and randrange(0, 2) == 0:
                         if d[0] == 0:
                             if all_v_connections(n_point):
                                 avaiPos.append(epos)
