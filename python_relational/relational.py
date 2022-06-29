@@ -19,7 +19,17 @@ sizeX, sizeY = (14, 14)
 # sizeX, sizeY = (18, 18)
 # sizeX, sizeY = (36, 9)
 # sizeX, sizeY = (36, 24)
-dirs = ((0,-1), (1, 0), (0, 1), (-1, 0))
+up = (0, -1)
+right = (1, 0)
+down = (0, 1)
+left = (-1, 0)
+dirs = (up, right, down, left)
+
+hero = (0, 0)
+
+
+def add(pos, direction, multi=1):
+    return (pos[0] + direction[0] * multi, pos[1] + direction[1] * multi)
 
 class tunnel_point:
     def __init__(self, pos, connect, val=None):
@@ -39,6 +49,10 @@ class tunnel:
         self.points[pos1] = p1
         self.points[pos2] = p2
 
+    def isConDir(self, pos, direction):
+        p = self.points.get(pos, None)
+        if not p: return False
+        return add(pos, direction) in p.connect
 
 def show(laby, way=None):
     def coord(n):
@@ -172,14 +186,14 @@ def paint(laby, b_size=40, pensize=7, way=None, crosspoint=None, solution=None):
     def p_laby_base(laby, t=t, b_size=b_size, pensize=pensize):
         for y in range(sizeY+1):
             for x in range(sizeX+1):
-                p = laby.points.get((x, y), None)
-                if (not p or not (x, y-1) in p.connect) and x < sizeX and not (x, y) in [(0, 0), (sizeX-1, sizeY)]:
+                pos = (x, y)
+                if not laby.isConDir(pos, up) and x < sizeX and not pos in [(0, 0), (sizeX-1, sizeY)]:
                     t.penup()
                     t.goto(conv_x(x), conv_y(y))
                     t.setheading(0)
                     t.pendown()
                     t.forward(b_size)
-                if (not p or not (x-1, y) in p.connect) and y < sizeY:
+                if not laby.isConDir(pos, left) and y < sizeY:
                     t.penup()
                     t.goto(conv_x(x), conv_y(y))
                     t.setheading(270)
@@ -249,6 +263,10 @@ def paint(laby, b_size=40, pensize=7, way=None, crosspoint=None, solution=None):
         t.update()
         screen.exitonclick()
 
+    def hero_move(direction, laby=laby):
+        global hero
+        if laby.isConnected(hero, add(hero, direction)):
+            hero = add(hero, direction)
 
     p_laby_bridge_shadow(bridge)
     p_laby_base(laby)
@@ -290,11 +308,11 @@ def dig_labyrinth():
         while True:
             avaiPos = []
             for d in dirs:
-                npos = dig[0] + d[0], dig[1] + d[1]
+                npos = add(dig, d)
                 if npos in unused_pos:
                     avaiPos.append(npos)
                 else:
-                    epos = dig[0] + d[0]*2, dig[1] + d[1]*2
+                    epos = add(dig, d, 2)
                     n_point = laby.points.get(npos, None)
                     if n_point and epos in unused_pos and randrange(0, 2) == 0:
                         if d[0] == 0:
