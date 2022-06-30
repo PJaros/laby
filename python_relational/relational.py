@@ -26,6 +26,7 @@ left = (-1, 0)
 dirs = (up, right, down, left)
 
 hero = (0, 0)
+hero_heading = 0
 
 
 def add(pos, direction, multi=1):
@@ -49,10 +50,10 @@ class tunnel:
         self.points[pos1] = p1
         self.points[pos2] = p2
 
-    def isConDir(self, pos, direction):
+    def isConDir(self, pos, direction, multi=1):
         p = self.points.get(pos, None)
         if not p: return False
-        return add(pos, direction) in p.connect
+        return add(pos, direction, multi) in p.connect
 
 def show(laby, way=None):
     def coord(n):
@@ -92,8 +93,10 @@ def show(laby, way=None):
     print("\n".join(["".join(elem) for elem in li]))
 
 def paint(laby, b_size=40, pensize=7, way=None, crosspoint=None, solution=None):
+    global show_solution
     import turtle as t
     import math
+    import sys
 
     class bridge_data:
         def __init__(self, x1, y1, x2, y2):
@@ -103,10 +106,6 @@ def paint(laby, b_size=40, pensize=7, way=None, crosspoint=None, solution=None):
             self.y2 = y2
             self.is_h = (y1 == y2)
 
-    t.speed(0)
-    t.tracer(0)
-    t.hideturtle()
-    t.pensize(pensize)
     screen = t.Screen()
     width, height = sizeX * b_size + 40 , sizeY * b_size + 40
     screen.setup(width, height, width // 2, height // 2)
@@ -122,6 +121,7 @@ def paint(laby, b_size=40, pensize=7, way=None, crosspoint=None, solution=None):
                 bridge.append(bridge_data(p_left.pos[0], p_left.pos[1], p_right[0], p_right[1]))
             if (p_up and p_down in p_up.connect):
                 bridge.append(bridge_data(p_up.pos[0], p_up.pos[1], p_down[0],  p_down[1]))
+    show_solution = False
 
     def arc(height, length):
         abs_height = abs(height)
@@ -258,24 +258,57 @@ def paint(laby, b_size=40, pensize=7, way=None, crosspoint=None, solution=None):
                 t.goto(conv_x(p[0], 0.5), conv_y(p[1], 0.5))
                 if not t.isdown(): t.pendown()
 
-    def on_click_solution(x, y):
-        p_solution(solution)
-        t.update()
-        screen.exitonclick()
+    def p_hero():
+        # t.showturtle()
+        t.shape("turtle")
+        t.penup()
+        t.goto(conv_x(hero[0], 0.5), conv_y(hero[1], 0.5))
+        t.setheading(hero_heading)
+        t.stamp()
 
-    def hero_move(direction, laby=laby):
-        global hero
-        if laby.isConnected(hero, add(hero, direction)):
+    def on_s_switch_solution():
+        global show_solution
+        show_solution = not show_solution
+        draw()
+
+    def hero_move(direction, heading, laby=laby):
+        global hero, hero_heading
+        print("move: " + str(hero))
+        if laby.isConDir(hero, direction):
             hero = add(hero, direction)
+            hero_heading = heading
+        if laby.isConDir(hero, direction, 2):
+            hero = add(hero, direction, 2)
+            hero_heading = heading
+        draw()
 
-    p_laby_bridge_shadow(bridge)
-    p_laby_base(laby)
-    p_laby_bridge(bridge)
-    p_crosspoint_way(laby, crosspoint=crosspoint, way=way)
-    # p_solution(solution)
-    t.update()
+    def draw(laby=laby, bridge=bridge, t=t):
+        t.reset()
+        t.tracer(0)
+        t.hideturtle()
+        t.pensize(pensize)
+        p_laby_bridge_shadow(bridge)
+        p_laby_base(laby)
+        p_hero()
+        p_laby_bridge(bridge)
+        p_crosspoint_way(laby, crosspoint=crosspoint, way=way)
+        if show_solution:
+            p_solution(solution)
+        t.update()
+
+    # Focus auf Fenster setzen: https://stackoverflow.com/a/44787756/406423
+    rootwindow = screen.getcanvas().winfo_toplevel()
+    rootwindow.call('wm', 'attributes', '.', '-topmost', '1')
+    rootwindow.call('wm', 'attributes', '.', '-topmost', '0')
+    draw()
     t.listen()
-    screen.onclick(on_click_solution)
+    # screen.onclick(on_click_solution)
+    screen.onkey(on_s_switch_solution, "s")
+    screen.onkey(lambda: sys.exit(0), "Escape")
+    screen.onkey(lambda: hero_move(up,    90), "Up")
+    screen.onkey(lambda: hero_move(right,  0), "Right")
+    screen.onkey(lambda: hero_move(down, 270), "Down")
+    screen.onkey(lambda: hero_move(left, 180), "Left")
     screen.mainloop()
 
 def dig_labyrinth():
