@@ -266,7 +266,7 @@ def paint(laby, b_size=40, pensize=7, way=None, crosspoint=None, solution=None):
         t.setheading(hero_heading)
         t.stamp()
 
-    def on_s_switch_solution():
+    def on_switch_solution():
         global show_solution
         show_solution = not show_solution
         draw()
@@ -277,7 +277,7 @@ def paint(laby, b_size=40, pensize=7, way=None, crosspoint=None, solution=None):
         if laby.isConDir(hero, direction):
             hero = add(hero, direction)
             hero_heading = heading
-        if laby.isConDir(hero, direction, 2):
+        elif laby.isConDir(hero, direction, 2):
             hero = add(hero, direction, 2)
             hero_heading = heading
         draw()
@@ -303,12 +303,12 @@ def paint(laby, b_size=40, pensize=7, way=None, crosspoint=None, solution=None):
     draw()
     t.listen()
     # screen.onclick(on_click_solution)
-    screen.onkey(on_s_switch_solution, "s")
-    screen.onkey(lambda: sys.exit(0), "Escape")
-    screen.onkey(lambda: hero_move(up,    90), "Up")
-    screen.onkey(lambda: hero_move(right,  0), "Right")
-    screen.onkey(lambda: hero_move(down, 270), "Down")
-    screen.onkey(lambda: hero_move(left, 180), "Left")
+    screen.onkeypress(on_switch_solution, "s")
+    screen.onkeypress(lambda: sys.exit(0), "Escape")
+    screen.onkeypress(lambda: hero_move(up,    90), "Up")
+    screen.onkeypress(lambda: hero_move(right,  0), "Right")
+    screen.onkeypress(lambda: hero_move(down, 270), "Down")
+    screen.onkeypress(lambda: hero_move(left, 180), "Left")
     screen.mainloop()
 
 def dig_labyrinth():
