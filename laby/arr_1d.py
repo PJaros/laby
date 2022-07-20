@@ -68,30 +68,30 @@ def paint(li, b_size=40, pensize=7, way=None, crosspoint=None, solution=None):
     import sys
 
     screen = t.Screen()
+    border = 40
 
     # Fix Window-Size
-    border = 40
     width, height = 1024, 768
     if width / li.sizeX < height / li.sizeY:
         b_size = (width - border) / ((li.sizeX - 1) / 2)
-        border_w, border_h = 0, (height - ((li.sizeY - 1) / 2 * b_size) - border) / 2
+        border_w, border_h = border / 2, (height - ((li.sizeY - 1) / 2 * b_size) - border) / 2
     else:
-        b_size = (height - border)/ ((li.sizeY - 1) / 2)
-        border_w, border_h = (width - ((li.sizeX - 1) / 2 * b_size) - border) / 2, 0
+        b_size = (height - border) / ((li.sizeY - 1) / 2)
+        border_w, border_h = (width - ((li.sizeX - 1) / 2 * b_size) - border) / 2, border / 2
     x_off, y_off = -width / 2 + border_w, height / 2 - border_h
     screen.setup(width, height, width // 2, height // 2)
 
     # Fix Block-Size
-    # width, height = ((li.sizeX - 1) / 2) * b_size + 40 , ((li.sizeY - 1) / 2) * b_size + 40
+    # width, height = ((li.sizeX - 1) / 2) * b_size + border , ((li.sizeY - 1) / 2) * b_size + border
     # screen.setup(width, height, width // 2, height // 2)
-    # x_off, y_off = -width / 2 + (border / 2) - 30, height / 2 - (border / 2)
+    # x_off, y_off = -width / 2 + (border / 2), height / 2 - (border / 2)
     # screen.setup(width, height, width // 2, height // 2)
 
     def conv_x(x, shift=0.0, b_size=b_size, x_off=x_off):
-        return (x / 2) * b_size + x_off + shift * b_size
+        return ((x - 1) / 2) * b_size + x_off + shift * b_size
 
     def conv_y(y, shift=0.0, b_size=b_size, y_off=y_off):
-        return (y / 2) * -b_size + y_off - shift * b_size
+        return ((y - 1) / 2) * -b_size + y_off - shift * b_size
 
     def p_laby_base(li, t=t, b_size=b_size):
         for y in range(1, li.sizeY+1, 2):
@@ -127,8 +127,7 @@ def paint(li, b_size=40, pensize=7, way=None, crosspoint=None, solution=None):
     screen.onkeypress(lambda: sys.exit(0), "Escape")
     screen.mainloop()
 
-
-if __name__ == "__main__":
+def default_generate_and_paint():
     # sizeX, sizeY = 3, 3
     # sizeX, sizeY = 31, 51
     sizeX, sizeY = 51, 31
@@ -147,3 +146,31 @@ if __name__ == "__main__":
     if sizeX * sizeY <= 331 * 201:
         paint(li, b_size=10)
 
+def test_paint():
+    li = Laby(7, 7)
+    li.arr = array.array("B", [
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 1, 0, 1, 1, 1, 1, 1, 0,
+        0, 1, 0, 1, 0, 0, 0, 1, 0,
+        0, 1, 0, 1, 1, 1, 0, 1, 0,
+        0, 1, 0, 0, 0, 0, 0, 1, 0,
+        0, 1, 1, 1, 1, 1, 1, 1, 0,
+        0, 1, 0, 0, 0, 0, 0, 1, 0,
+        0, 1, 1, 1, 1, 1, 0, 1, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 1, 1, 1, 1, 1, 1, 1, 0,
+        0, 1, 1, 1, 1, 1, 1, 1, 0,
+        0, 1, 1, 1, 0, 1, 1, 1, 0,
+        0, 1, 1, 1, 1, 1, 1, 1, 0,
+        0, 1, 1, 1, 1, 1, 1, 1, 0,
+        0, 1, 1, 1, 1, 1, 1, 1, 0,
+        0, 1, 1, 1, 1, 1, 1, 1, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+    ])
+    paint(li)
+
+
+if __name__ == "__main__":
+    # default_generate_and_paint()
+    test_paint()
