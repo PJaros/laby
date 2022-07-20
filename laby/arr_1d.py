@@ -1,4 +1,5 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
+
 from random import choice, randint
 from time import clock
 import array
@@ -55,10 +56,9 @@ def create_laby(sizeX, sizeY):
 
 
 def print_laby(li):
-    if li.sizeX <= 77:
-        for i in range(li.realY):
-            line = ['#' if e == 1 else ' ' for e in li.arr[i * li.realX:(i + 1) * li.realX]]
-            print("".join(line))
+    for i in range(li.realY):
+        line = ['#' if e == 1 else ' ' for e in li.arr[i * li.realX:(i + 1) * li.realX]]
+        print("".join(line))
 
 
 def paint(li, b_size=40, pensize=7, way=None, crosspoint=None, solution=None):
