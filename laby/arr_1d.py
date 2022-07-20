@@ -68,9 +68,24 @@ def paint(li, b_size=40, pensize=7, way=None, crosspoint=None, solution=None):
     import sys
 
     screen = t.Screen()
-    width, height = ((li.sizeX - 1) / 2) * b_size + 40 , ((li.sizeY - 1) / 2) * b_size + 40
+
+    # Fix Window-Size
+    border = 40
+    width, height = 1024, 768
+    if width / li.sizeX < height / li.sizeY:
+        b_size = (width - border) / ((li.sizeX - 1) / 2)
+        border_w, border_h = 0, (height - ((li.sizeY - 1) / 2 * b_size) - border) / 2
+    else:
+        b_size = (height - border)/ ((li.sizeY - 1) / 2)
+        border_w, border_h = (width - ((li.sizeX - 1) / 2 * b_size) - border) / 2, 0
+    x_off, y_off = -width / 2 + border_w, height / 2 - border_h
     screen.setup(width, height, width // 2, height // 2)
-    x_off, y_off = -width / 2 + 15, height / 2 - 15
+
+    # Fix Block-Size
+    # width, height = ((li.sizeX - 1) / 2) * b_size + 40 , ((li.sizeY - 1) / 2) * b_size + 40
+    # screen.setup(width, height, width // 2, height // 2)
+    # x_off, y_off = -width / 2 + (border / 2) - 30, height / 2 - (border / 2)
+    # screen.setup(width, height, width // 2, height // 2)
 
     def conv_x(x, shift=0.0, b_size=b_size, x_off=x_off):
         return (x / 2) * b_size + x_off + shift * b_size
@@ -115,6 +130,7 @@ def paint(li, b_size=40, pensize=7, way=None, crosspoint=None, solution=None):
 
 if __name__ == "__main__":
     # sizeX, sizeY = 3, 3
+    # sizeX, sizeY = 31, 51
     sizeX, sizeY = 51, 31
     # sizeX, sizeY = 77, 11
     # sizeX, sizeY = 77, 31
