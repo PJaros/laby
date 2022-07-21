@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from random import choice, randint
+from random import choice, randint, randrange
 from time import clock
 import array
 
@@ -32,15 +32,33 @@ def create_laby(sizeX, sizeY):
             avaiDir = [d
                        for d in li.dirs
                        if li.arr[pos + d * 2] == 1]
+            avaiBridge = [d
+                          for d in li.dirs
+                          if li.arr[pos + d * 2 + li.realX * li.realY] == 1
+                          and li.arr[pos + d * 4] == 1
+                          and li.arr[pos + d] == 1
+                          and li.arr[pos + d * 2] == 0
+                          ]
 
-            if not avaiDir: break
-            dir = choice(avaiDir)
-            if len(avaiDir) > 1:
-                jumpPos.append(pos)
 
-            for i in (0, 1):
-                pos += dir
+            if avaiDir:
+                dir = choice(avaiDir)
+                if len(avaiDir) > 1:
+                    jumpPos.append(pos)
+
+                for i in (0, 1):
+                    pos += dir
+                    li.arr[pos] = 0
+            elif avaiBridge and randrange(0, 2) == 0:
+                dir = choice(avaiBridge)
+                bPos = pos + li.realX * li.realY
+                pos += 4 * dir
+                for i in range(3):
+                    bPos += dir
+                    li.arr[bPos] = 0
                 li.arr[pos] = 0
+            else:
+                break
 
         if not jumpPos:
             break
@@ -56,8 +74,13 @@ def create_laby(sizeX, sizeY):
 
 
 def print_laby(li):
+    z = 0
     for i in range(li.realY):
-        line = ['#' if e == 1 else ' ' for e in li.arr[i * li.realX:(i + 1) * li.realX]]
+        line = ['#' if e == 1 else ' ' for e in li.arr[(i * li.realX) + z:((i + 1) * li.realX) + z]]
+        print("".join(line))
+    z = li.realX * li.realY
+    for i in range(li.realY):
+        line = ['#' if e == 1 else ' ' for e in li.arr[(i * li.realX) + z:((i + 1) * li.realX) + z]]
         print("".join(line))
 
 
@@ -120,7 +143,7 @@ def paint(li, b_size=40, pensize=7, way=None, crosspoint=None, solution=None):
                 if li.arr[cur_pos] == 0:
                     # print("0")
                     t.penup()
-                    if li.arr[cur_pos + li.realX] == 0:
+                    if li.arr[cur_pos + li.realX] == 0 and li.arr[cur_pos - li.realX] == 0:
                         t.setheading(270)
                         t.goto(conv_x(x, rel_hi), conv_y(y - 2, 0.9))
                         # print("v, x: " + str(x) + ", y: " + str(y))
@@ -153,7 +176,7 @@ def paint(li, b_size=40, pensize=7, way=None, crosspoint=None, solution=None):
                 cur_pos = (x + 1) + (y + 1) * li.realX + li.realX * li.realY
                 if li.arr[cur_pos] == 0:
                     t.penup()
-                    if li.arr[cur_pos + li.realX] == 0:
+                    if li.arr[cur_pos + li.realX] == 0 and li.arr[cur_pos - li.realX] == 0:
                         t.setheading(270)
                         t.goto(conv_x(x, rel_hi), conv_y(y - 2, 0.9))
                     else:
@@ -222,6 +245,7 @@ def paint(li, b_size=40, pensize=7, way=None, crosspoint=None, solution=None):
     t.listen()
     screen.onkeypress(lambda: sys.exit(0), "Escape")
     screen.mainloop()
+
 
 def default_generate_and_paint():
     # sizeX, sizeY = 3, 3
@@ -292,6 +316,6 @@ def test_paint_h():
 
 
 if __name__ == "__main__":
-    # default_generate_and_paint()
+    default_generate_and_paint()
     # test_paint_h()
-    test_paint_v()
+    # test_paint_v()
