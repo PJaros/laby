@@ -114,22 +114,20 @@ def paint(li, b_size=40, pensize=7, way=None, crosspoint=None, solution=None):
         width = b_size * rel_width
         rel_lo = (1 - rel_width) / 2
         rel_hi = 1 - rel_lo
-        # for b in bridge:
-        #     x, y = b.x1, b.y1
         for y in range(1, li.sizeY, 2):
             for x in range(1, li.sizeX, 2):
                 cur_pos = (x + 1) + (y + 1) * li.realX  + li.realX * li.realY
                 if li.arr[cur_pos] == 0:
-                    print("0")
+                    # print("0")
                     t.penup()
                     if li.arr[cur_pos + li.realX] == 0:
                         t.setheading(270)
                         t.goto(conv_x(x, rel_hi), conv_y(y - 2, 0.9))
-                        print("v, x: " + str(x) + ", y: " + str(y))
+                        # print("v, x: " + str(x) + ", y: " + str(y))
                     else:
                         t.setheading(0)
                         t.goto(conv_x(x - 2, 0.9), conv_y(y, rel_lo))
-                        print("h, x: " + str(x) + ", y: " + str(y))
+                        # print("h, x: " + str(x) + ", y: " + str(y))
                     bridge_shadow(length=b_size*1.2, width=width)
 
     def bridge_shadow(length, width, color=(0.8, 0.8, 0.8)):
