@@ -20,14 +20,20 @@ impl Laby {
     pub fn new(size_x: usize, size_y: usize) -> Self {
         let real_x = size_x + 2;
         let real_y = size_y + 2;
-        Self {
+        let mut li = Self {
             size_x,
             size_y,
             real_x,
             real_y,
             real_z: 2_usize,
-            arr: BitVec::repeat(true, real_x * real_y)
+            arr: BitVec::repeat(false, real_x * real_y)
+        };
+        for x in 1..li.size_x + 1 {
+            for y in 1..li.size_y + 1 {
+                li.arr.set(x + y * li.real_x, true);
+            }
         }
+        return li;
     }
 }
 
@@ -38,8 +44,9 @@ async fn main() {
         .await
         .expect("Font loaded");
     let mut li = Laby::new(5_usize, 5_usize);
-    li.arr.set(0, false);
-
+    let mut jump_pos = Vec::<u32>::new();
+    let mut pos: usize = 2 * li.real_x + 2;
+    li.arr.set(pos, false);
     loop {
         if is_key_down(KeyCode::Escape) {
             break;
