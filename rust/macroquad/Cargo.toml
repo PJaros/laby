@@ -1,5 +1,5 @@
 [package]
-name = "rust-macroquad-laby"
+name = "macroquad-laby"
 version = "0.1.0"
 edition = "2021"
 

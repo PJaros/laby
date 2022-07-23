@@ -1,4 +1,7 @@
+extern crate macroquad;
+
 use macroquad::prelude::*;
+use macroquad::prelude::load_ttf_font;
 
 #[macroquad::main("Laby")]
 async fn main() {
