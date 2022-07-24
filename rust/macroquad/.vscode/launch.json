@@ -7,15 +7,15 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'rust-macroquad-laby'",
+            "name": "Debug executable 'macroquad-laby'",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=rust-macroquad-laby",
-                    "--package=rust-macroquad-laby"
+                    "--bin=macroquad-laby",
+                    "--package=macroquad-laby"
                 ],
                 "filter": {
-                    "name": "rust-macroquad-laby",
+                    "name": "macroquad-laby",
                     "kind": "bin"
                 }
             },
@@ -25,16 +25,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable 'rust-macroquad-laby'",
+            "name": "Debug unit tests in executable 'macroquad-laby'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--bin=rust-macroquad-laby",
-                    "--package=rust-macroquad-laby"
+                    "--bin=macroquad-laby",
+                    "--package=macroquad-laby"
                 ],
                 "filter": {
-                    "name": "rust-macroquad-laby",
+                    "name": "macroquad-laby",
                     "kind": "bin"
                 }
             },
