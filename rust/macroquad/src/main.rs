@@ -1,12 +1,8 @@
 extern crate macroquad;
-extern crate bitvec;
 
 use macroquad::prelude::*;
 use macroquad::prelude::load_ttf_font;
 use macroquad::prelude::rand::gen_range;
-
-use bitvec::prelude::*;
-use bitvec::vec::BitVec;
 
 use std::time::Instant;
 
@@ -16,7 +12,7 @@ struct Laby {
     real_x: usize,
     real_y: usize,
     real_z: usize,
-    arr: BitVec<usize, Lsb0>,
+    arr: Vec<usize>,
     dirs: Vec<isize>
 }
 
@@ -31,12 +27,12 @@ impl Laby {
             real_x,
             real_y,
             real_z: 2_usize,
-            arr: BitVec::repeat(false, real_x * real_y),
+            arr: vec![0; real_x * real_y],
             dirs
         };
         for x in 1..li.size_x + 1 {
             for y in 1..li.size_y + 1 {
-                li.arr.set(x + y * li.real_x, true);
+                li.arr[x + y * li.real_x] = 1;
             }
         }
         return li;
@@ -54,19 +50,19 @@ async fn main() {
     let start = Instant::now();
     // let mut li = Laby::new(9_usize, 9_usize);
     // let mut li = Laby::new(51_usize, 31_usize);
-    let mut li = Laby::new(77_usize, 31_usize);
-    // let mut li = Laby::new(331_usize, 201_usize);
+    // let mut li = Laby::new(77_usize, 31_usize);
+    let mut li = Laby::new(331_usize, 201_usize);
     // let mut li = Laby::new(77711_usize, 711_usize);
     let mut jump_pos = Vec::<usize>::new();
     let mut pos: usize = 2 * li.real_x + 2;
-    li.arr.set(pos, false);
+    li.arr[pos] = 0;
 
     loop {
         loop {
             let mut avai_dir = Vec::<isize>::new();
             for d in &li.dirs {
                 let test_pos: usize = ((pos as isize) + d * 2) as usize;
-                if li.arr.get(test_pos).unwrap() == true {
+                if li.arr[test_pos] == 1 {
                     avai_dir.push(*d);
                 }
             }
@@ -78,7 +74,7 @@ async fn main() {
                 }
                 for _ in 0..2 {
                     pos = ((pos as isize) + dir) as usize;
-                    li.arr.set(pos, false);
+                    li.arr[pos] = 0;
                 }
             } else {
                 break;
@@ -90,8 +86,8 @@ async fn main() {
         let r:usize = gen_range::<usize>(0, jump_pos.len());
         pos = jump_pos.swap_remove(r);
     }
-    li.arr.set(li.real_x + 2, false);
-    li.arr.set(li.real_x * li.size_y + (li.real_x -3), false);
+    li.arr[li.real_x + 2] = 0;
+    li.arr[li.real_x * li.size_y + (li.real_x -3)] = 0;
     let duration = start.elapsed();
     println!("Time elapsed to generate labrinth is: {:?}", duration);
 
@@ -121,7 +117,7 @@ async fn main() {
         if li.size_x * li.size_y <= 331 * 201 {
             for x in 0..li.real_x {
                 for y in 0..li.real_y {
-                    if li.arr[x + y * li.real_x] == true {
+                    if li.arr[x + y * li.real_x] == 1 {
                         draw_rectangle(
                             border_w + (x as f32) * block_size + pad,
                             border_h + (y as f32) * block_size + pad,

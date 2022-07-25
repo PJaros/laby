@@ -250,10 +250,10 @@ def paint(li, b_size=40, pensize=7, way=None, crosspoint=None, solution=None):
 def default_generate_and_paint():
     # sizeX, sizeY = 3, 3
     # sizeX, sizeY = 31, 51
-    sizeX, sizeY = 51, 31
+    # sizeX, sizeY = 51, 31
     # sizeX, sizeY = 77, 11
     # sizeX, sizeY = 77, 31
-    # sizeX, sizeY = 331, 201
+    sizeX, sizeY = 331, 201
     # sizeX, sizeY = 771, 311
     # sizeX, sizeY = 77711, 711
     start = clock()
