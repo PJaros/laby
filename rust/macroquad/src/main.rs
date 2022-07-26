@@ -1,8 +1,8 @@
 extern crate macroquad;
 
-use macroquad::prelude::*;
 use macroquad::prelude::load_ttf_font;
 use macroquad::prelude::rand::gen_range;
+use macroquad::prelude::*;
 
 use std::time::Instant;
 
@@ -13,14 +13,14 @@ struct Laby {
     real_y: usize,
     real_z: usize,
     arr: Vec<usize>,
-    dirs: Vec<isize>
+    dirs: Vec<isize>,
 }
 
 impl Laby {
     pub fn new(size_x: usize, size_y: usize) -> Self {
         let real_x = size_x + 2;
         let real_y = size_y + 2;
-        let dirs:Vec<isize> = vec![real_x as isize, 1, - (real_x as isize), -1];
+        let dirs: Vec<isize> = vec![real_x as isize, 1, -(real_x as isize), -1];
         let mut li = Self {
             size_x,
             size_y,
@@ -28,7 +28,7 @@ impl Laby {
             real_y,
             real_z: 2_usize,
             arr: vec![0; real_x * real_y],
-            dirs
+            dirs,
         };
         for x in 1..li.size_x + 1 {
             for y in 1..li.size_y + 1 {
@@ -59,35 +59,32 @@ async fn main() {
 
     loop {
         loop {
-            let mut avai_dir = Vec::<isize>::new();
-            for d in &li.dirs {
-                let test_pos: usize = ((pos as isize) + d * 2) as usize;
-                if li.arr[test_pos] == 1 {
-                    avai_dir.push(*d);
-                }
-            }
-            if avai_dir.len() > 0 {
-                let r = gen_range::<usize>(0, avai_dir.len());
-                let dir = avai_dir[r];
-                if avai_dir.len() > 1 {
-                    jump_pos.push(pos);
-                }
-                for _ in 0..2 {
-                    pos = ((pos as isize) + dir) as usize;
-                    li.arr[pos] = 0;
-                }
-            } else {
+            let avai_dir: Vec<&isize> = li
+                .dirs
+                .iter()
+                .filter(|d| li.arr[((pos as isize) + *d * 2) as usize] == 1)
+                .collect();
+
+            if avai_dir.len() == 0 {
                 break;
+            } else if avai_dir.len() > 1 {
+                jump_pos.push(pos);
+            }
+            let r = gen_range::<usize>(0, avai_dir.len());
+            let dir = avai_dir[r];
+            for _ in 0..2 {
+                pos = ((pos as isize) + dir) as usize;
+                li.arr[pos] = 0;
             }
         }
         if jump_pos.len() == 0 {
-            break
+            break;
         }
-        let r:usize = gen_range::<usize>(0, jump_pos.len());
+        let r: usize = gen_range::<usize>(0, jump_pos.len());
         pos = jump_pos.swap_remove(r);
     }
     li.arr[li.real_x + 2] = 0;
-    li.arr[li.real_x * li.size_y + (li.real_x -3)] = 0;
+    li.arr[li.real_x * li.size_y + (li.real_x - 3)] = 0;
     let duration = start.elapsed();
     println!("Time elapsed to generate labrinth is: {:?}", duration);
 
@@ -129,7 +126,10 @@ async fn main() {
                 }
             }
         } else {
-            let score_text = &format!("Labyrinth {} * {} is too big to display", li.size_x, li.size_y);
+            let score_text = &format!(
+                "Labyrinth {} * {} is too big to display",
+                li.size_x, li.size_y
+            );
             let score_text_dim = measure_text(&score_text, Some(font), 60, 1.0);
             draw_text_ex(
                 &score_text,
