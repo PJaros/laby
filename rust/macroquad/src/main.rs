@@ -106,24 +106,22 @@ fn generate(size_x: usize, size_y: usize) -> Laby {
     li
 }
 
-fn paint_li(li: &Laby) {
-    let border = 30_f32;
+fn paint_block_li(li: &Laby) {
+    let border = 10_f32;
     // let pad = 3_f32;
     let pad = 0_f32;
     let border_h: f32;
     let border_w: f32;
-    let block_size_w = (screen_width() - border) / (li.real_x as f32);
-    let block_size_h = (screen_height() - border) / (li.real_y as f32);
+    let block_size_w = ((screen_width() - border) / (li.real_x as f32)).floor();
+    let block_size_h = ((screen_height() - border) / (li.real_y as f32)).floor();
     let block_size: f32;
     if block_size_w < block_size_h {
         block_size = block_size_w;
-        border_w = border * 0.5;
-        border_h = (screen_height() - block_size * (li.real_y as f32)) * 0.5;
     } else {
         block_size = block_size_h;
-        border_w = (screen_width() - block_size * (li.real_x as f32)) * 0.5;
-        border_h = border * 0.5;
     }
+    border_h = (screen_height() - block_size * (li.real_y as f32)) * 0.5;
+    border_w = (screen_width() - block_size * (li.real_x as f32)) * 0.5;
 
     clear_background(WHITE);
     if li.size_x * li.size_y <= 331 * 201 {
@@ -171,10 +169,9 @@ async fn main() {
     // let li = generate(9_usize, 9_usize);
     // let li = generate(51_usize, 31_usize);
     // let li = generate(77_usize, 31_usize);
-    // let li = generate(331_usize, 201_usize);
+    let li = generate(331_usize, 201_usize);
     // let li = generate(77711_usize, 711_usize);
-    // let li = generate(331_usize, 201_usize);
-    let li = test_laby_v();
+    // let li = test_laby_v();
     let duration = start.elapsed();
     println!("Time elapsed to generate labrinth is: {:?}", duration);
 
@@ -182,7 +179,7 @@ async fn main() {
         if is_key_down(KeyCode::Escape) {
             break;
         }
-        paint_li(&li);
+        paint_block_li(&li);
         next_frame().await
     }
 }
