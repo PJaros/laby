@@ -39,6 +39,62 @@ impl Laby {
     }
 }
 
+struct PaintLabyData {
+    li_size_x: usize,
+    li_size_y: usize,
+    li_real_x: usize,
+    li_real_y: usize,
+    border: f32,
+    pad: f32,
+    line_rel_size: f32,
+    block_size: f32,
+    half_line_width: f32,
+    border_h: f32,
+    border_w: f32
+}
+
+impl PaintLabyData {
+    fn new(border: f32, pad: f32, line_rel_size: f32, li: &Laby) -> Self {
+        let size_x: f32 = ((li.size_x as f32) - 1.0) * 0.5;
+        let size_y: f32 = ((li.size_y as f32) - 1.0) * 0.5;
+        let block_size_w = ((screen_width() - 2.0 * border) / size_x).floor();
+        let block_size_h = ((screen_height() - 2.0 * border) / size_y).floor();
+        let block_size: f32;
+        if block_size_w < block_size_h {
+            block_size = block_size_w;
+        } else {
+            block_size = block_size_h;
+        }
+        let border_h = (screen_height() - block_size * (size_y as f32)) * 0.5;
+        let border_w = (screen_width() - block_size * (size_x as f32)) * 0.5;
+        let mut half_line_width: f32 = (block_size * line_rel_size * 0.5).round();
+        if half_line_width == 0.0 {
+            half_line_width = 0.5;
+        }
+        Self {
+            li_size_x: li.size_x,
+            li_size_y: li.size_y,
+            li_real_x: li.real_x,
+            li_real_y: li.real_y,
+            border,
+            pad,
+            line_rel_size,
+            block_size,
+            half_line_width,
+            border_h,
+            border_w
+        }
+    }
+
+    pub fn x_pos(&self, x: usize) -> f32 {
+        ((x - 1) as f32) * 0.5 * self.block_size + self.border_w
+    }
+
+    pub fn y_pos(&self, y: usize) -> f32 {
+        (y - 1) as f32 * 0.5 * self.block_size + self.border_h
+    }
+}
+
 #[rustfmt::skip]
 fn test_laby_v() -> Laby {
     let mut li = Laby::new(7_usize, 7_usize);
@@ -158,6 +214,56 @@ fn paint_block_li(li: &Laby) {
     }
 }
 
+fn paint_line_li(li: &Laby) {
+    let pld = PaintLabyData::new(30.0, 0.0, 0.1, &li);
+
+    clear_background(WHITE);
+    if li.size_x * li.size_y <= 331 * 201 {
+        for x in (1..li.size_x + 1).step_by(2) {
+            for y in (1..li.size_y + 1).step_by(2) {
+                let cur_pos = x + y * li.real_x;
+                let x_pos = pld.x_pos(x) - pld.half_line_width;
+                let y_pos = pld.y_pos(y) - pld.half_line_width;
+                if li.arr[cur_pos + 1] == 1 {
+                    draw_rectangle(
+                        x_pos,
+                        y_pos,
+                        2.0 * pld.half_line_width + pld.block_size,
+                        2.0 * pld.half_line_width,
+                        BLACK,
+                    );
+                }
+                if li.arr[cur_pos + li.real_x] == 1 {
+                    draw_rectangle(
+                        x_pos,
+                        y_pos,
+                        2.0 * pld.half_line_width,
+                        2.0 * pld.half_line_width + pld.block_size,
+                        BLACK,
+                    );
+                }
+            }
+        }
+    } else {
+        let score_text = &format!(
+            "Labyrinth {} * {} is too big to display",
+            li.size_x, li.size_y
+        );
+        // let score_text_dim = measure_text(&score_text, Some(font), 60, 1.0);
+        // draw_text_ex(
+        //     &score_text,
+        //     (screen_width() - score_text_dim.width) * 0.5,
+        //     40.0,
+        //     TextParams {
+        //         font,
+        //         font_size: 60,
+        //         color: BLACK,
+        //         ..Default::default()
+        //     },
+        // );
+    }
+}
+
 #[macroquad::main("Laby")]
 async fn main() {
     // from: https://www.dafont.com/computerfont.font
@@ -169,9 +275,9 @@ async fn main() {
     // let li = generate(9_usize, 9_usize);
     // let li = generate(51_usize, 31_usize);
     // let li = generate(77_usize, 31_usize);
-    let li = generate(331_usize, 201_usize);
+    // let li = generate(331_usize, 201_usize);
     // let li = generate(77711_usize, 711_usize);
-    // let li = test_laby_v();
+    let li = test_laby_v();
     let duration = start.elapsed();
     println!("Time elapsed to generate labrinth is: {:?}", duration);
 
@@ -179,7 +285,8 @@ async fn main() {
         if is_key_down(KeyCode::Escape) {
             break;
         }
-        paint_block_li(&li);
+        // paint_block_li(&li);
+        paint_line_li(&li);
         next_frame().await
     }
 }
