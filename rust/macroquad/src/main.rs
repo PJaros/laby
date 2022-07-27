@@ -1,6 +1,6 @@
 extern crate macroquad;
 
-use macroquad::prelude::load_ttf_font;
+// use macroquad::prelude::load_ttf_font;
 use macroquad::prelude::rand::gen_range;
 use macroquad::prelude::*;
 
@@ -39,20 +39,9 @@ impl Laby {
     }
 }
 
-#[macroquad::main("Laby")]
-async fn main() {
-    // from: https://www.dafont.com/computerfont.font
-    let font = load_ttf_font("res/Computerfont.ttf")
-        .await
-        .expect("Font loaded");
+fn generate(size_x: usize, size_y: usize) -> Laby {
+    let mut li: Laby = Laby::new(size_x, size_y);
     rand::srand(macroquad::miniquad::date::now() as _);
-    println!("Start");
-    let start = Instant::now();
-    // let mut li = Laby::new(9_usize, 9_usize);
-    // let mut li = Laby::new(51_usize, 31_usize);
-    // let mut li = Laby::new(77_usize, 31_usize);
-    let mut li = Laby::new(331_usize, 201_usize);
-    // let mut li = Laby::new(77711_usize, 711_usize);
     let mut jump_pos = Vec::<usize>::new();
     let mut pos: usize = 2 * li.real_x + 2;
     li.arr[pos] = 0;
@@ -88,6 +77,77 @@ async fn main() {
     }
     li.arr[li.real_x + 2] = 0;
     li.arr[li.real_x * li.size_y + (li.real_x - 3)] = 0;
+    li
+}
+
+fn paint_li(li: &Laby) {
+    let border = 30_f32;
+    // let pad = 3_f32;
+    let pad = 0_f32;
+    let border_h: f32;
+    let border_w: f32;
+    let block_size_w = (screen_width() - border) / (li.real_x as f32);
+    let block_size_h = (screen_height() - border) / (li.real_y as f32);
+    let block_size: f32;
+    if block_size_w < block_size_h {
+        block_size = block_size_w;
+        border_w = border * 0.5;
+        border_h = (screen_height() - block_size * (li.real_y as f32)) * 0.5;
+    } else {
+        block_size = block_size_h;
+        border_w = (screen_width() - block_size * (li.real_x as f32)) * 0.5;
+        border_h = border * 0.5;
+    }
+
+    clear_background(WHITE);
+    if li.size_x * li.size_y <= 331 * 201 {
+        for x in 0..li.real_x {
+            for y in 0..li.real_y {
+                if li.arr[x + y * li.real_x] == 1 {
+                    draw_rectangle(
+                        border_w + (x as f32) * block_size + pad,
+                        border_h + (y as f32) * block_size + pad,
+                        block_size - pad,
+                        block_size - pad,
+                        BLACK,
+                    );
+                }
+            }
+        }
+    } else {
+        let score_text = &format!(
+            "Labyrinth {} * {} is too big to display",
+            li.size_x, li.size_y
+        );
+        // let score_text_dim = measure_text(&score_text, Some(font), 60, 1.0);
+        // draw_text_ex(
+        //     &score_text,
+        //     (screen_width() - score_text_dim.width) * 0.5,
+        //     40.0,
+        //     TextParams {
+        //         font,
+        //         font_size: 60,
+        //         color: BLACK,
+        //         ..Default::default()
+        //     },
+        // );
+    }
+}
+
+#[macroquad::main("Laby")]
+async fn main() {
+    // from: https://www.dafont.com/computerfont.font
+    // let font = load_ttf_font("res/Computerfont.ttf")
+    //     .await
+    //     .expect("Font loaded");
+    let start = Instant::now();
+    println!("Start");
+    // let mut li = Laby::new(9_usize, 9_usize);
+    // let mut li = Laby::new(51_usize, 31_usize);
+    // let mut li = Laby::new(77_usize, 31_usize);
+    // let mut li = Laby::new(331_usize, 201_usize);
+    // let mut li = Laby::new(77711_usize, 711_usize);
+    let li = generate(331_usize, 201_usize);
     let duration = start.elapsed();
     println!("Time elapsed to generate labrinth is: {:?}", duration);
 
@@ -95,58 +155,7 @@ async fn main() {
         if is_key_down(KeyCode::Escape) {
             break;
         }
-        let border = 30_f32;
-        // let pad = 3_f32;
-        let pad = 0_f32;
-        let border_h: f32;
-        let border_w: f32;
-        let block_size_w = (screen_width() - border) / (li.real_x as f32);
-        let block_size_h = (screen_height() - border) / (li.real_y as f32);
-        let block_size: f32;
-        if block_size_w < block_size_h {
-            block_size = block_size_w;
-            border_w = border * 0.5;
-            border_h = (screen_height() - block_size * (li.real_y as f32)) * 0.5;
-        } else {
-            block_size = block_size_h;
-            border_w = (screen_width() - block_size * (li.real_x as f32)) * 0.5;
-            border_h = border * 0.5;
-        }
-
-        clear_background(WHITE);
-        if li.size_x * li.size_y <= 331 * 201 {
-            for x in 0..li.real_x {
-                for y in 0..li.real_y {
-                    if li.arr[x + y * li.real_x] == 1 {
-                        draw_rectangle(
-                            border_w + (x as f32) * block_size + pad,
-                            border_h + (y as f32) * block_size + pad,
-                            block_size - pad,
-                            block_size - pad,
-                            BLACK,
-                        );
-                    }
-                }
-            }
-        } else {
-            let score_text = &format!(
-                "Labyrinth {} * {} is too big to display",
-                li.size_x, li.size_y
-            );
-            let score_text_dim = measure_text(&score_text, Some(font), 60, 1.0);
-            draw_text_ex(
-                &score_text,
-                (screen_width() - score_text_dim.width) * 0.5,
-                40.0,
-                TextParams {
-                    font,
-                    font_size: 60,
-                    color: BLACK,
-                    ..Default::default()
-                },
-            );
-        }
-
+        paint_li(&li);
         next_frame().await
     }
 }
