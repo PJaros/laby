@@ -56,14 +56,17 @@ async fn main() {
     let mut jump_pos = Vec::<usize>::new();
     let mut pos: usize = 2 * li.real_x + 2;
     li.arr[pos] = 0;
+    let mut avai_dir = Vec::<isize>::new();
 
     loop {
         loop {
-            let avai_dir: Vec<&isize> = li
-                .dirs
-                .iter()
-                .filter(|d| li.arr[((pos as isize) + *d * 2) as usize] == 1)
-                .collect();
+            avai_dir.clear();
+            for d in &li.dirs {
+                let test_pos: usize = ((pos as isize) + d * 2) as usize;
+                if li.arr[test_pos] == 1 {
+                    avai_dir.push(*d);
+                }
+            }
 
             if avai_dir.len() == 0 {
                 break;
