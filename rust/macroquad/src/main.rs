@@ -39,6 +39,32 @@ impl Laby {
     }
 }
 
+#[rustfmt::skip]
+fn test_laby_v() -> Laby {
+    let mut li = Laby::new(7_usize, 7_usize);
+    li.arr = vec![
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 1, 0, 1, 1, 1, 1, 1, 0,
+        0, 1, 0, 1, 0, 0, 0, 1, 0,
+        0, 1, 0, 1, 1, 1, 0, 1, 0,
+        0, 1, 0, 0, 0, 0, 0, 1, 0,
+        0, 1, 1, 1, 1, 1, 1, 1, 0,
+        0, 1, 0, 0, 0, 0, 0, 1, 0,
+        0, 1, 1, 1, 1, 1, 0, 1, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 1, 1, 1, 1, 1, 1, 1, 0,
+        0, 1, 1, 1, 1, 1, 1, 1, 0,
+        0, 1, 1, 1, 0, 1, 1, 1, 0,
+        0, 1, 1, 1, 0, 1, 1, 1, 0,
+        0, 1, 1, 1, 0, 1, 1, 1, 0,
+        0, 1, 1, 1, 1, 1, 1, 1, 0,
+        0, 1, 1, 1, 1, 1, 1, 1, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+    ];
+    li
+}
+
 fn generate(size_x: usize, size_y: usize) -> Laby {
     let mut li: Laby = Laby::new(size_x, size_y);
     rand::srand(macroquad::miniquad::date::now() as _);
@@ -142,12 +168,13 @@ async fn main() {
     //     .expect("Font loaded");
     let start = Instant::now();
     println!("Start");
-    // let mut li = Laby::new(9_usize, 9_usize);
-    // let mut li = Laby::new(51_usize, 31_usize);
-    // let mut li = Laby::new(77_usize, 31_usize);
-    // let mut li = Laby::new(331_usize, 201_usize);
-    // let mut li = Laby::new(77711_usize, 711_usize);
-    let li = generate(331_usize, 201_usize);
+    // let li = generate(9_usize, 9_usize);
+    // let li = generate(51_usize, 31_usize);
+    // let li = generate(77_usize, 31_usize);
+    // let li = generate(331_usize, 201_usize);
+    // let li = generate(77711_usize, 711_usize);
+    // let li = generate(331_usize, 201_usize);
+    let li = test_laby_v();
     let duration = start.elapsed();
     println!("Time elapsed to generate labrinth is: {:?}", duration);
 
