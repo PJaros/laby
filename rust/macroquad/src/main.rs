@@ -39,7 +39,7 @@ impl Laby {
     }
 }
 
-struct PaintLabyLineData {
+struct PaintLabyLine {
     // li_size_x: usize,
     // li_size_y: usize,
     // li_real_x: usize,
@@ -52,7 +52,7 @@ struct PaintLabyLineData {
     border_w: f32
 }
 
-impl PaintLabyLineData {
+impl PaintLabyLine {
     fn new(border: f32, line_rel_size: f32, li: &Laby) -> Self {
         let size_x: f32 = ((li.size_x as f32) - 1.0) * 0.5;
         let size_y: f32 = ((li.size_y as f32) - 1.0) * 0.5;
@@ -84,12 +84,60 @@ impl PaintLabyLineData {
         }
     }
 
-    pub fn x_pos(&self, x: usize) -> f32 {
+    fn x_pos(&self, x: usize) -> f32 {
         ((x - 1) as f32) * 0.5 * self.block_size + self.border_w
     }
 
-    pub fn y_pos(&self, y: usize) -> f32 {
+    fn y_pos(&self, y: usize) -> f32 {
         (y - 1) as f32 * 0.5 * self.block_size + self.border_h
+    }
+
+    pub fn paint_line_li(&self, li: &Laby) {    
+        clear_background(WHITE);
+        if li.size_x * li.size_y <= 331 * 201 {
+            for x in (1..li.size_x + 1).step_by(2) {
+                for y in (1..li.size_y + 1).step_by(2) {
+                    let cur_pos = x + y * li.real_x;
+                    let x_pos = self.x_pos(x) - self.half_line_width;
+                    let y_pos = self.y_pos(y) - self.half_line_width;
+                    if li.arr[cur_pos + 1] == 1 {
+                        draw_rectangle(
+                            x_pos,
+                            y_pos,
+                            2.0 * self.half_line_width + self.block_size,
+                            2.0 * self.half_line_width,
+                            BLACK,
+                        );
+                    }
+                    if li.arr[cur_pos + li.real_x] == 1 {
+                        draw_rectangle(
+                            x_pos,
+                            y_pos,
+                            2.0 * self.half_line_width,
+                            2.0 * self.half_line_width + self.block_size,
+                            BLACK,
+                        );
+                    }
+                }
+            }
+        } else {
+            let score_text = &format!(
+                "Labyrinth {} * {} is too big to display",
+                li.size_x, li.size_y
+            );
+            // let score_text_dim = measure_text(&score_text, Some(font), 60, 1.0);
+            // draw_text_ex(
+            //     &score_text,
+            //     (screen_width() - score_text_dim.width) * 0.5,
+            //     40.0,
+            //     TextParams {
+            //         font,
+            //         font_size: 60,
+            //         color: BLACK,
+            //         ..Default::default()
+            //     },
+            // );
+        }
     }
 }
 
@@ -212,56 +260,6 @@ fn paint_block_li(li: &Laby) {
     }
 }
 
-fn paint_line_li(li: &Laby) {
-    let plld = PaintLabyLineData::new(30.0, 0.1, &li);
-
-    clear_background(WHITE);
-    if li.size_x * li.size_y <= 331 * 201 {
-        for x in (1..li.size_x + 1).step_by(2) {
-            for y in (1..li.size_y + 1).step_by(2) {
-                let cur_pos = x + y * li.real_x;
-                let x_pos = plld.x_pos(x) - plld.half_line_width;
-                let y_pos = plld.y_pos(y) - plld.half_line_width;
-                if li.arr[cur_pos + 1] == 1 {
-                    draw_rectangle(
-                        x_pos,
-                        y_pos,
-                        2.0 * plld.half_line_width + plld.block_size,
-                        2.0 * plld.half_line_width,
-                        BLACK,
-                    );
-                }
-                if li.arr[cur_pos + li.real_x] == 1 {
-                    draw_rectangle(
-                        x_pos,
-                        y_pos,
-                        2.0 * plld.half_line_width,
-                        2.0 * plld.half_line_width + plld.block_size,
-                        BLACK,
-                    );
-                }
-            }
-        }
-    } else {
-        let score_text = &format!(
-            "Labyrinth {} * {} is too big to display",
-            li.size_x, li.size_y
-        );
-        // let score_text_dim = measure_text(&score_text, Some(font), 60, 1.0);
-        // draw_text_ex(
-        //     &score_text,
-        //     (screen_width() - score_text_dim.width) * 0.5,
-        //     40.0,
-        //     TextParams {
-        //         font,
-        //         font_size: 60,
-        //         color: BLACK,
-        //         ..Default::default()
-        //     },
-        // );
-    }
-}
-
 #[macroquad::main("Laby")]
 async fn main() {
     // from: https://www.dafont.com/computerfont.font
@@ -278,13 +276,15 @@ async fn main() {
     let li = test_laby_v();
     let duration = start.elapsed();
     println!("Time elapsed to generate labrinth is: {:?}", duration);
+    let plld = PaintLabyLine::new(30.0, 0.1, &li);
 
     loop {
         if is_key_down(KeyCode::Escape) {
             break;
         }
         // paint_block_li(&li);
-        paint_line_li(&li);
+        plld.paint_line_li(&li);
+        // paint_line_li(&li);
         next_frame().await
     }
 }
