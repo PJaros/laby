@@ -39,22 +39,21 @@ impl Laby {
     }
 }
 
-struct PaintLabyData {
-    li_size_x: usize,
-    li_size_y: usize,
-    li_real_x: usize,
-    li_real_y: usize,
-    border: f32,
-    pad: f32,
-    line_rel_size: f32,
+struct PaintLabyLineData {
+    // li_size_x: usize,
+    // li_size_y: usize,
+    // li_real_x: usize,
+    // li_real_y: usize,
+    // border: f32,
+    // line_rel_size: f32,
     block_size: f32,
     half_line_width: f32,
     border_h: f32,
     border_w: f32
 }
 
-impl PaintLabyData {
-    fn new(border: f32, pad: f32, line_rel_size: f32, li: &Laby) -> Self {
+impl PaintLabyLineData {
+    fn new(border: f32, line_rel_size: f32, li: &Laby) -> Self {
         let size_x: f32 = ((li.size_x as f32) - 1.0) * 0.5;
         let size_y: f32 = ((li.size_y as f32) - 1.0) * 0.5;
         let block_size_w = ((screen_width() - 2.0 * border) / size_x).floor();
@@ -72,13 +71,12 @@ impl PaintLabyData {
             half_line_width = 0.5;
         }
         Self {
-            li_size_x: li.size_x,
-            li_size_y: li.size_y,
-            li_real_x: li.real_x,
-            li_real_y: li.real_y,
-            border,
-            pad,
-            line_rel_size,
+            // li_size_x: li.size_x,
+            // li_size_y: li.size_y,
+            // li_real_x: li.real_x,
+            // li_real_y: li.real_y,
+            // border,
+            // line_rel_size,
             block_size,
             half_line_width,
             border_h,
@@ -215,21 +213,21 @@ fn paint_block_li(li: &Laby) {
 }
 
 fn paint_line_li(li: &Laby) {
-    let pld = PaintLabyData::new(30.0, 0.0, 0.1, &li);
+    let plld = PaintLabyLineData::new(30.0, 0.1, &li);
 
     clear_background(WHITE);
     if li.size_x * li.size_y <= 331 * 201 {
         for x in (1..li.size_x + 1).step_by(2) {
             for y in (1..li.size_y + 1).step_by(2) {
                 let cur_pos = x + y * li.real_x;
-                let x_pos = pld.x_pos(x) - pld.half_line_width;
-                let y_pos = pld.y_pos(y) - pld.half_line_width;
+                let x_pos = plld.x_pos(x) - plld.half_line_width;
+                let y_pos = plld.y_pos(y) - plld.half_line_width;
                 if li.arr[cur_pos + 1] == 1 {
                     draw_rectangle(
                         x_pos,
                         y_pos,
-                        2.0 * pld.half_line_width + pld.block_size,
-                        2.0 * pld.half_line_width,
+                        2.0 * plld.half_line_width + plld.block_size,
+                        2.0 * plld.half_line_width,
                         BLACK,
                     );
                 }
@@ -237,8 +235,8 @@ fn paint_line_li(li: &Laby) {
                     draw_rectangle(
                         x_pos,
                         y_pos,
-                        2.0 * pld.half_line_width,
-                        2.0 * pld.half_line_width + pld.block_size,
+                        2.0 * plld.half_line_width,
+                        2.0 * plld.half_line_width + plld.block_size,
                         BLACK,
                     );
                 }
