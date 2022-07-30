@@ -40,12 +40,6 @@ impl Laby {
 }
 
 struct PaintLabyLine<'a> {
-    // li_size_x: usize,
-    // li_size_y: usize,
-    // li_real_x: usize,
-    // li_real_y: usize,
-    // border: f32,
-    // line_rel_size: f32,
     li: &'a Laby,
     block_size: f32,
     half_line_width: f32,
@@ -72,12 +66,6 @@ impl<'a> PaintLabyLine<'a>{
             half_line_width = 0.5;
         }
         Self {
-            // li_size_x: li.size_x,
-            // li_size_y: li.size_y,
-            // li_real_x: li.real_x,
-            // li_real_y: li.real_y,
-            // border,
-            // line_rel_size,
             li,
             block_size,
             half_line_width,
@@ -87,7 +75,7 @@ impl<'a> PaintLabyLine<'a>{
     }
 
     fn x_pos(&self, x: usize) -> f32 {
-        ((x - 1) as f32) * 0.5 * self.block_size + self.border_w
+        (x - 1) as f32 * 0.5 * self.block_size + self.border_w
     }
 
     fn y_pos(&self, y: usize) -> f32 {
@@ -97,31 +85,8 @@ impl<'a> PaintLabyLine<'a>{
     pub fn paint_line_li(&self) {
         clear_background(WHITE);
         if self.li.size_x * self.li.size_y <= 331 * 201 {
-            for x in (1..self.li.size_x + 1).step_by(2) {
-                for y in (1..self.li.size_y + 1).step_by(2) {
-                    let cur_pos = x + y * self.li.real_x;
-                    let x_pos = self.x_pos(x) - self.half_line_width;
-                    let y_pos = self.y_pos(y) - self.half_line_width;
-                    if self.li.arr[cur_pos + 1] == 1 {
-                        draw_rectangle(
-                            x_pos,
-                            y_pos,
-                            2.0 * self.half_line_width + self.block_size,
-                            2.0 * self.half_line_width,
-                            BLACK,
-                        );
-                    }
-                    if self.li.arr[cur_pos + self.li.real_x] == 1 {
-                        draw_rectangle(
-                            x_pos,
-                            y_pos,
-                            2.0 * self.half_line_width,
-                            2.0 * self.half_line_width + self.block_size,
-                            BLACK,
-                        );
-                    }
-                }
-            }
+            self.paint_bridge_shadow();
+            self.paint_base();
         } else {
             let score_text = &format!(
                 "Labyrinth {} * {} is too big to display",
@@ -139,6 +104,67 @@ impl<'a> PaintLabyLine<'a>{
             //         ..Default::default()
             //     },
             // );
+        }
+    }
+
+    fn paint_bridge_shadow(&self) {
+        let rel_width = 0.6;
+        let width = self.block_size * rel_width;
+        let rel_lo = (1.0 - rel_width) * 0.5;
+        let rel_high = 1.0 - rel_lo;
+        let lo = self.block_size * rel_lo;
+        let high = self.block_size * rel_high;
+        for x in (1..self.li.size_x).step_by(2) {
+            for y in (1..self.li.size_y).step_by(2) {
+                let cur_pos = (x + 1) + (y + 1) * self.li.real_x + self.li.real_x * self.li.real_y;
+                if self.li.arr[cur_pos] == 0 {
+                    if self.li.arr[cur_pos + self.li.real_x] == 0 && self.li.arr[cur_pos - self.li.real_x] == 0 {
+                        draw_rectangle(
+                            self.x_pos(x) + lo,
+                            self.y_pos(y) - lo,
+                            width,
+                            2.0 * lo + self.block_size,
+                            LIGHTGRAY,
+                        );
+                    } else {
+                        draw_rectangle(
+                            self.x_pos(x) - lo,
+                            self.y_pos(y) + lo,
+                            2.0 * lo + self.block_size,
+                            width,
+                            LIGHTGRAY,
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    fn paint_base(&self) {
+        for x in (1..self.li.size_x + 1).step_by(2) {
+            for y in (1..self.li.size_y + 1).step_by(2) {
+                let cur_pos = x + y * self.li.real_x;
+                let x_pos = self.x_pos(x) - self.half_line_width;
+                let y_pos = self.y_pos(y) - self.half_line_width;
+                if self.li.arr[cur_pos + 1] == 1 {
+                    draw_rectangle(
+                        x_pos,
+                        y_pos,
+                        2.0 * self.half_line_width + self.block_size,
+                        2.0 * self.half_line_width,
+                        BLACK,
+                    );
+                }
+                if self.li.arr[cur_pos + self.li.real_x] == 1 {
+                    draw_rectangle(
+                        x_pos,
+                        y_pos,
+                        2.0 * self.half_line_width,
+                        2.0 * self.half_line_width + self.block_size,
+                        BLACK,
+                    );
+                }
+            }
         }
     }
 }
@@ -162,6 +188,32 @@ fn test_laby_v() -> Laby {
         0, 1, 1, 1, 0, 1, 1, 1, 0,
         0, 1, 1, 1, 0, 1, 1, 1, 0,
         0, 1, 1, 1, 0, 1, 1, 1, 0,
+        0, 1, 1, 1, 1, 1, 1, 1, 0,
+        0, 1, 1, 1, 1, 1, 1, 1, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+    ];
+    li
+}
+
+#[rustfmt::skip]
+fn test_laby_h() -> Laby {
+    let mut li = Laby::new(7_usize, 7_usize);
+    li.arr = vec![
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 1, 0, 1, 1, 1, 1, 1, 0,
+        0, 1, 0, 0, 0, 1, 0, 1, 0,
+        0, 1, 1, 1, 0, 1, 0, 1, 0,
+        0, 1, 0, 1, 0, 1, 0, 1, 0,
+        0, 1, 0, 1, 0, 1, 0, 1, 0,
+        0, 1, 0, 0, 0, 1, 0, 1, 0,
+        0, 1, 1, 1, 1, 1, 0, 1, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 1, 1, 1, 1, 1, 1, 1, 0,
+        0, 1, 1, 1, 1, 1, 1, 1, 0,
+        0, 1, 1, 1, 1, 1, 1, 1, 0,
+        0, 1, 1, 0, 0, 0, 1, 1, 0,
+        0, 1, 1, 1, 1, 1, 1, 1, 0,
         0, 1, 1, 1, 1, 1, 1, 1, 0,
         0, 1, 1, 1, 1, 1, 1, 1, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -271,11 +323,12 @@ async fn main() {
     let start = Instant::now();
     println!("Start");
     // let li = generate(9_usize, 9_usize);
-    let li = generate(51_usize, 31_usize);
+    // let li = generate(51_usize, 31_usize);
     // let li = generate(77_usize, 31_usize);
     // let li = generate(331_usize, 201_usize);
     // let li = generate(77711_usize, 711_usize);
-    // let li = test_laby_v();
+    let li = test_laby_v();
+    // let li = test_laby_h();
     let duration = start.elapsed();
     println!("Time elapsed to generate labrinth is: {:?}", duration);
 
