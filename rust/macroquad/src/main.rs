@@ -46,13 +46,12 @@ struct PaintLabyLine<'a> {
     half_line_width: f32,
     border_h: f32,
     border_w: f32,
-    // rel_bridge_width: f32,
-    // rel_bridge_top: f32,
-    // rel_bridge_line_width: f32,
     bridge_width: f32,
     bridge_length: f32,
+    bridge_top: f32,
     lo: f32,
     texture_bridge_v: Texture2D,
+    texture_bridge_h: Texture2D,
 }
 
 impl<'a> PaintLabyLine<'a> {
@@ -85,44 +84,49 @@ impl<'a> PaintLabyLine<'a> {
         let rel_lo = (1.0 - rel_bridge_width) * 0.5;
         let lo = block_size * rel_lo;
         let bridge_length = 2.0 * lo + block_size;
+        let bridge_top = image_breath_top - bridge_width;
 
         let mut transparant = WHITE;
         transparant.a = 0.0;
-        let mut image_bridge_v = Image::gen_image_color(
-            image_breath_top as u16,
-            bridge_length as u16,
-            transparant,
-        );
+        let mut image_bridge_v =
+            Image::gen_image_color(image_breath_top as u16, bridge_length as u16, transparant);
+        let mut image_bridge_h =
+            Image::gen_image_color(bridge_length as u16, image_breath_top as u16, transparant);
         let texture_bridge_v = Texture2D::from_image(&image_bridge_v);
+        let texture_bridge_h = Texture2D::from_image(&image_bridge_h);
         for i in 0..(bridge_length as u32) {
             let i_over_pi = (PI / (bridge_length as f32)) * (i as f32);
             let begin_bridge = (i_over_pi).sin() * bridge_width * rel_bridge_top;
             for n in 0..(image_breath_top as u32) {
                 let n_f32 = n as f32;
+                let n_h = (image_breath_top as u32) - n - 1;
                 if n_f32 < begin_bridge {
                 } else if n_f32 >= begin_bridge && n_f32 < (begin_bridge + line_width) {
                     image_bridge_v.set_pixel(n, i, BLACK);
+                    image_bridge_h.set_pixel(i, n_h, BLACK);
                 } else if n_f32 <= begin_bridge + bridge_width - line_width {
                     image_bridge_v.set_pixel(n, i, WHITE);
+                    image_bridge_h.set_pixel(i, n_h, WHITE);
                 } else if n_f32 <= begin_bridge + bridge_width {
                     image_bridge_v.set_pixel(n, i, BLACK);
+                    image_bridge_h.set_pixel(i, n_h, BLACK);
                 }
             }
         }
         texture_bridge_v.update(&image_bridge_v);
+        texture_bridge_h.update(&image_bridge_h);
         Self {
             li,
             block_size,
             half_line_width,
             border_h,
             border_w,
-            // rel_bridge_width,
-            // rel_bridge_top,
-            // rel_bridge_line_width,
             bridge_width,
             bridge_length,
+            bridge_top,
             lo,
             texture_bridge_v,
+            texture_bridge_h,
         }
     }
 
@@ -197,13 +201,6 @@ impl<'a> PaintLabyLine<'a> {
                     if self.li.arr[cur_pos + self.li.real_x] == 0
                         && self.li.arr[cur_pos - self.li.real_x] == 0
                     {
-                        // draw_rectangle(
-                        //     self.x_pos(x) + self.lo,
-                        //     self.y_pos(y) - self.lo,
-                        //     self.bridge_width,
-                        //     self.bridge_length,
-                        //     LIGHTGRAY,
-                        // );
                         draw_texture(
                             self.texture_bridge_v,
                             self.x_pos(x) + self.lo,
@@ -211,17 +208,10 @@ impl<'a> PaintLabyLine<'a> {
                             WHITE,
                         );
                     } else {
-                        // draw_rectangle(
-                        //     self.x_pos(x) - self.lo,
-                        //     self.y_pos(y) + self.lo,
-                        //     self.bridge_length,
-                        //     self.bridge_width,
-                        //     LIGHTGRAY,
-                        // );
                         draw_texture(
-                            self.texture_bridge_v,
+                            self.texture_bridge_h,
                             self.x_pos(x) - self.lo,
-                            self.y_pos(y) + self.lo,
+                            self.y_pos(y) + self.lo - self.bridge_top,
                             WHITE,
                         );
                     }
@@ -417,8 +407,8 @@ async fn main() {
     // let li = generate(77_usize, 31_usize);
     // let li = generate(331_usize, 201_usize);
     // let li = generate(77711_usize, 711_usize);
-    let li = test_laby_v();
-    // let li = test_laby_h();
+    // let li = test_laby_v();
+    let li = test_laby_h();
     let duration = start.elapsed();
     println!("Time elapsed to generate labrinth is: {:?}", duration);
 
