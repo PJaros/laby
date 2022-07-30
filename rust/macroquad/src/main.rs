@@ -4,6 +4,7 @@ extern crate macroquad;
 use macroquad::prelude::rand::gen_range;
 use macroquad::prelude::*;
 
+use std::f32::consts::PI;
 use std::time::Instant;
 
 struct Laby {
@@ -44,10 +45,17 @@ struct PaintLabyLine<'a> {
     block_size: f32,
     half_line_width: f32,
     border_h: f32,
-    border_w: f32
+    border_w: f32,
+    // rel_bridge_width: f32,
+    // rel_bridge_top: f32,
+    // rel_bridge_line_width: f32,
+    bridge_width: f32,
+    bridge_length: f32,
+    lo: f32,
+    texture_bridge_v: Texture2D,
 }
 
-impl<'a> PaintLabyLine<'a>{
+impl<'a> PaintLabyLine<'a> {
     fn new(border: f32, line_rel_size: f32, li: &'a Laby) -> Self {
         let size_x: f32 = ((li.size_x as f32) - 1.0) * 0.5;
         let size_y: f32 = ((li.size_y as f32) - 1.0) * 0.5;
@@ -65,12 +73,56 @@ impl<'a> PaintLabyLine<'a>{
         if half_line_width == 0.0 {
             half_line_width = 0.5;
         }
+        let rel_bridge_width = 0.6;
+        let rel_bridge_top = 0.25;
+        let rel_bridge_line_width = 0.5;
+        let mut line_width = (half_line_width * 2.0 * rel_bridge_line_width).round();
+        if line_width <= 0.0 {
+            line_width = 1.0;
+        }
+        let bridge_width = block_size * rel_bridge_width;
+        let image_breath_top = bridge_width * (1.0 + rel_bridge_top);
+        let rel_lo = (1.0 - rel_bridge_width) * 0.5;
+        let lo = block_size * rel_lo;
+        let bridge_length = 2.0 * lo + block_size;
+
+        let mut transparant = WHITE;
+        transparant.a = 0.0;
+        let mut image_bridge_v = Image::gen_image_color(
+            image_breath_top as u16,
+            bridge_length as u16,
+            transparant,
+        );
+        let texture_bridge_v = Texture2D::from_image(&image_bridge_v);
+        for i in 0..(bridge_length as u32) {
+            let i_over_pi = (PI / (bridge_length as f32)) * (i as f32);
+            let begin_bridge = (i_over_pi).sin() * bridge_width * rel_bridge_top;
+            for n in 0..(image_breath_top as u32) {
+                let n_f32 = n as f32;
+                if n_f32 < begin_bridge {
+                } else if n_f32 >= begin_bridge && n_f32 < (begin_bridge + line_width) {
+                    image_bridge_v.set_pixel(n, i, BLACK);
+                } else if n_f32 <= begin_bridge + bridge_width - line_width {
+                    image_bridge_v.set_pixel(n, i, WHITE);
+                } else if n_f32 <= begin_bridge + bridge_width {
+                    image_bridge_v.set_pixel(n, i, BLACK);
+                }
+            }
+        }
+        texture_bridge_v.update(&image_bridge_v);
         Self {
             li,
             block_size,
             half_line_width,
             border_h,
-            border_w
+            border_w,
+            // rel_bridge_width,
+            // rel_bridge_top,
+            // rel_bridge_line_width,
+            bridge_width,
+            bridge_length,
+            lo,
+            texture_bridge_v,
         }
     }
 
@@ -87,6 +139,7 @@ impl<'a> PaintLabyLine<'a>{
         if self.li.size_x * self.li.size_y <= 331 * 201 {
             self.paint_bridge_shadow();
             self.paint_base();
+            self.paint_bridge();
         } else {
             let score_text = &format!(
                 "Labyrinth {} * {} is too big to display",
@@ -108,31 +161,68 @@ impl<'a> PaintLabyLine<'a>{
     }
 
     fn paint_bridge_shadow(&self) {
-        let rel_width = 0.6;
-        let width = self.block_size * rel_width;
-        let rel_lo = (1.0 - rel_width) * 0.5;
-        let rel_high = 1.0 - rel_lo;
-        let lo = self.block_size * rel_lo;
-        let high = self.block_size * rel_high;
         for x in (1..self.li.size_x).step_by(2) {
             for y in (1..self.li.size_y).step_by(2) {
                 let cur_pos = (x + 1) + (y + 1) * self.li.real_x + self.li.real_x * self.li.real_y;
                 if self.li.arr[cur_pos] == 0 {
-                    if self.li.arr[cur_pos + self.li.real_x] == 0 && self.li.arr[cur_pos - self.li.real_x] == 0 {
+                    if self.li.arr[cur_pos + self.li.real_x] == 0
+                        && self.li.arr[cur_pos - self.li.real_x] == 0
+                    {
                         draw_rectangle(
-                            self.x_pos(x) + lo,
-                            self.y_pos(y) - lo,
-                            width,
-                            2.0 * lo + self.block_size,
+                            self.x_pos(x) + self.lo,
+                            self.y_pos(y) - self.lo,
+                            self.bridge_width,
+                            self.bridge_length,
                             LIGHTGRAY,
                         );
                     } else {
                         draw_rectangle(
-                            self.x_pos(x) - lo,
-                            self.y_pos(y) + lo,
-                            2.0 * lo + self.block_size,
-                            width,
+                            self.x_pos(x) - self.lo,
+                            self.y_pos(y) + self.lo,
+                            self.bridge_length,
+                            self.bridge_width,
                             LIGHTGRAY,
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    fn paint_bridge(&self) {
+        for x in (1..self.li.size_x).step_by(2) {
+            for y in (1..self.li.size_y).step_by(2) {
+                let cur_pos = (x + 1) + (y + 1) * self.li.real_x + self.li.real_x * self.li.real_y;
+                if self.li.arr[cur_pos] == 0 {
+                    if self.li.arr[cur_pos + self.li.real_x] == 0
+                        && self.li.arr[cur_pos - self.li.real_x] == 0
+                    {
+                        // draw_rectangle(
+                        //     self.x_pos(x) + self.lo,
+                        //     self.y_pos(y) - self.lo,
+                        //     self.bridge_width,
+                        //     self.bridge_length,
+                        //     LIGHTGRAY,
+                        // );
+                        draw_texture(
+                            self.texture_bridge_v,
+                            self.x_pos(x) + self.lo,
+                            self.y_pos(y) - self.lo,
+                            WHITE,
+                        );
+                    } else {
+                        // draw_rectangle(
+                        //     self.x_pos(x) - self.lo,
+                        //     self.y_pos(y) + self.lo,
+                        //     self.bridge_length,
+                        //     self.bridge_width,
+                        //     LIGHTGRAY,
+                        // );
+                        draw_texture(
+                            self.texture_bridge_v,
+                            self.x_pos(x) - self.lo,
+                            self.y_pos(y) + self.lo,
+                            WHITE,
                         );
                     }
                 }
