@@ -1,12 +1,13 @@
 extern crate macroquad;
 
 // use macroquad::prelude::load_ttf_font;
-use macroquad::prelude::rand::gen_range;
 use macroquad::prelude::*;
+use macroquad::rand::gen_range;
 
 use std::f32::consts::PI;
 use std::time::Instant;
 
+#[derive(Debug)]
 struct Laby {
     size_x: usize,
     size_y: usize,
@@ -21,6 +22,7 @@ impl Laby {
     pub fn new(size_x: usize, size_y: usize) -> Self {
         let real_x = size_x + 2;
         let real_y = size_y + 2;
+        let real_z = 2;
         let dirs: Vec<isize> = vec![real_x as isize, 1, -(real_x as isize), -1];
         let mut li = Self {
             size_x,
@@ -28,18 +30,21 @@ impl Laby {
             real_x,
             real_y,
             real_z: 2_usize,
-            arr: vec![0; real_x * real_y],
+            arr: vec![0; real_x * real_y * real_z],
             dirs,
         };
         for x in 1..li.size_x + 1 {
             for y in 1..li.size_y + 1 {
-                li.arr[x + y * li.real_x] = 1;
+                for z in 0..li.real_z {
+                    li.arr[x + y * li.real_x + z * real_x * real_y] = 1;
+                }
             }
         }
         return li;
     }
 }
 
+#[derive(Debug, Clone, Copy)]
 struct PaintLabyLine<'a> {
     li: &'a Laby,
     block_size: f32,
@@ -66,8 +71,8 @@ impl<'a> PaintLabyLine<'a> {
         } else {
             block_size = block_size_h;
         }
-        let border_h = (screen_height() - block_size * (size_y as f32)) * 0.5;
-        let border_w = (screen_width() - block_size * (size_x as f32)) * 0.5;
+        let border_h = ((screen_height() - block_size * (size_y as f32)) * 0.5).round();
+        let border_w = ((screen_width() - block_size * (size_x as f32)) * 0.5).round();
         let mut half_line_width: f32 = (block_size * line_rel_size * 0.5).round();
         if half_line_width == 0.0 {
             half_line_width = 0.5;
@@ -79,10 +84,10 @@ impl<'a> PaintLabyLine<'a> {
         if line_width <= 0.0 {
             line_width = 1.0;
         }
-        let bridge_width = block_size * rel_bridge_width;
-        let image_breath_top = bridge_width * (1.0 + rel_bridge_top);
+        let bridge_width = (block_size * rel_bridge_width).round();
+        let image_breath_top = (bridge_width * (1.0 + rel_bridge_top)).ceil();
         let rel_lo = (1.0 - rel_bridge_width) * 0.5;
-        let lo = block_size * rel_lo;
+        let lo = (block_size * rel_lo).round();
         let bridge_length = 2.0 * lo + block_size;
         let bridge_top = image_breath_top - bridge_width;
 
@@ -96,7 +101,7 @@ impl<'a> PaintLabyLine<'a> {
         let texture_bridge_h = Texture2D::from_image(&image_bridge_h);
         for i in 0..(bridge_length as u32) {
             let i_over_pi = (PI / (bridge_length as f32)) * (i as f32);
-            let begin_bridge = (i_over_pi).sin() * bridge_width * rel_bridge_top;
+            let begin_bridge = ((i_over_pi).sin() * bridge_width * rel_bridge_top).floor();
             for n in 0..(image_breath_top as u32) {
                 let n_f32 = n as f32;
                 let n_h = (image_breath_top as u32) - n - 1;
@@ -250,7 +255,7 @@ impl<'a> PaintLabyLine<'a> {
 }
 
 #[rustfmt::skip]
-fn test_laby_v() -> Laby {
+fn _test_laby_v() -> Laby {
     let mut li = Laby::new(7_usize, 7_usize);
     li.arr = vec![
         0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -276,7 +281,7 @@ fn test_laby_v() -> Laby {
 }
 
 #[rustfmt::skip]
-fn test_laby_h() -> Laby {
+fn _test_laby_h() -> Laby {
     let mut li = Laby::new(7_usize, 7_usize);
     li.arr = vec![
         0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -307,28 +312,61 @@ fn generate(size_x: usize, size_y: usize) -> Laby {
     let mut jump_pos = Vec::<usize>::new();
     let mut pos: usize = 2 * li.real_x + 2;
     li.arr[pos] = 0;
-    let mut avai_dir = Vec::<isize>::new();
+    let mut avai_dir = Vec::<isize>::with_capacity(4);
+    let mut avai_bridge_dir = Vec::<isize>::with_capacity(4);
 
     loop {
         loop {
             avai_dir.clear();
+            avai_bridge_dir.clear();
+            // let test_pos = pos;
+            // println!("cur pos: {}, x: {}, y: {}", test_pos, test_pos % li.real_x, test_pos / li.real_x);
             for d in &li.dirs {
-                let test_pos: usize = ((pos as isize) + d * 2) as usize;
-                if li.arr[test_pos] == 1 {
+                if li.arr[(((pos as isize) + d * 2) as usize)] == 1 {
                     avai_dir.push(*d);
                 }
             }
-
-            if avai_dir.len() == 0 {
-                break;
-            } else if avai_dir.len() > 1 {
-                jump_pos.push(pos);
+            for d in &li.dirs {
+                let test_pos =
+                    (((pos as isize) + d * 2 + (li.real_x * li.real_y) as isize) as usize);
+                // println!("test_pos: {}, x: {}, y: {}", test_pos, test_pos % li.real_x, test_pos / li.real_x);
+                if li.arr[test_pos] == 1
+                    && li.arr[((pos as isize) + d * 4) as usize] == 1
+                    && li.arr[((pos as isize) + d) as usize] == 1
+                    && li.arr[((pos as isize) + d * 2) as usize] == 0
+                {
+                    avai_bridge_dir.push(*d);
+                }
             }
-            let r = gen_range::<usize>(0, avai_dir.len());
-            let dir = avai_dir[r];
-            for _ in 0..2 {
-                pos = ((pos as isize) + dir) as usize;
+
+            if avai_dir.len() > 0 {
+                if avai_dir.len() > 1 {
+                    jump_pos.push(pos);
+                }
+                let r = gen_range::<usize>(0, avai_dir.len());
+                let dir = avai_dir[r];
+                for _ in 0..2 {
+                    pos = ((pos as isize) + dir) as usize;
+                    li.arr[pos] = 0;
+                }
+                // let test_pos = pos;
+                // println!("pos after dig: {}, x: {}, y: {}", test_pos, test_pos % li.real_x, test_pos / li.real_x);
+            // } else if avai_bridge_dir.len() > 0 && gen_range::<usize>(0, 2) == 0 {
+            } else if avai_bridge_dir.len() > 0 {
+                let r = gen_range::<usize>(0, avai_bridge_dir.len());
+                let dir = avai_bridge_dir[r];
+                let mut b_pos: usize = pos + li.real_x * li.real_y;
+                pos = ((pos as isize) + 4 * dir) as usize;
+                for _ in 0..3 {
+                    b_pos = ((b_pos as isize) + dir) as usize;
+                    li.arr[b_pos] = 0;
+                }
                 li.arr[pos] = 0;
+                // _print_li(&li);
+                // let test_pos = pos;
+                // println!("pos after bridge dig: {}, x: {}, y: {}", test_pos, test_pos % li.real_x, test_pos / li.real_x);
+            } else {
+                break;
             }
         }
         if jump_pos.len() == 0 {
@@ -342,10 +380,23 @@ fn generate(size_x: usize, size_y: usize) -> Laby {
     li
 }
 
-fn paint_block_li(li: &Laby) {
+fn _print_li(li: &Laby) {
+    for i in 0..li.arr.len() / li.real_x {
+        let mut line_output = String::new();
+        for n in 0..li.real_x {
+            line_output.push(match li.arr[i * li.real_x + n] {
+                0 => '.',
+                _ => '#',
+            });
+        }
+        println!("{}", line_output);
+    }
+}
+
+fn paint_block_li(li: &Laby, pos: usize) {
     let border = 10_f32;
-    // let pad = 3_f32;
-    let pad = 0_f32;
+    let pad = 3_f32;
+    // let pad = 0_f32;
     let border_h: f32;
     let border_w: f32;
     let block_size_w = ((screen_width() - border) / (li.real_x as f32)).floor();
@@ -361,8 +412,8 @@ fn paint_block_li(li: &Laby) {
 
     clear_background(WHITE);
     if li.size_x * li.size_y <= 331 * 201 {
-        for x in 0..li.real_x {
-            for y in 0..li.real_y {
+        for x in (0..li.real_x).rev() {
+            for y in 0..(li.real_y * 2) {
                 if li.arr[x + y * li.real_x] == 1 {
                     draw_rectangle(
                         border_w + (x as f32) * block_size + pad,
@@ -403,21 +454,27 @@ async fn main() {
     let start = Instant::now();
     println!("Start");
     // let li = generate(9_usize, 9_usize);
-    // let li = generate(51_usize, 31_usize);
+    let li = generate(51_usize, 31_usize);
     // let li = generate(77_usize, 31_usize);
     // let li = generate(331_usize, 201_usize);
     // let li = generate(77711_usize, 711_usize);
-    // let li = test_laby_v();
-    let li = test_laby_h();
+    // let li = _test_laby_v();
+    // let li = _test_laby_h();
     let duration = start.elapsed();
     println!("Time elapsed to generate labrinth is: {:?}", duration);
-
+    // let mut once: bool = false;
     loop {
         let pll = PaintLabyLine::new(30.0, 0.1, &li);
+        // if !once {
+        //     let mut pll_dbg = pll.clone();
+        //     let dummy_li = Laby::new(1, 1);
+        //     pll_dbg.li = &dummy_li;
+        //     dbg!(pll_dbg);
+        //     once = true;
+        // }
         if is_key_down(KeyCode::Escape) {
             break;
         }
-        // paint_block_li(&li);
         pll.paint_line_li();
         next_frame().await
     }

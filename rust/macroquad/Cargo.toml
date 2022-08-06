@@ -12,4 +12,4 @@ macroquad = "0.3.23"
 #opt-level = "z"
 opt-level = "s"
 lto = true
-strip = "symbols"
+# strip = "symbols"
