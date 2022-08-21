@@ -393,27 +393,27 @@ fn _print_li(li: &Laby) {
     }
 }
 
-fn paint_block_li(li: &Laby, pos: usize) {
-    let border = 10_f32;
+fn paint_block_li(li: &Laby) {
+    let border = 2_f32;
     let pad = 3_f32;
     // let pad = 0_f32;
     let border_h: f32;
     let border_w: f32;
     let block_size_w = ((screen_width() - border) / (li.real_x as f32)).floor();
-    let block_size_h = ((screen_height() - border) / (li.real_y as f32)).floor();
+    let block_size_h = ((screen_height() - border) / ((li.real_y * li.real_z) as f32)).floor();
     let block_size: f32;
     if block_size_w < block_size_h {
         block_size = block_size_w;
     } else {
         block_size = block_size_h;
     }
-    border_h = (screen_height() - block_size * (li.real_y as f32)) * 0.5;
+    border_h = (screen_height() - block_size * ((li.real_y * li.real_z) as f32)) * 0.5;
     border_w = (screen_width() - block_size * (li.real_x as f32)) * 0.5;
 
     clear_background(WHITE);
     if li.size_x * li.size_y <= 331 * 201 {
         for x in (0..li.real_x).rev() {
-            for y in 0..(li.real_y * 2) {
+            for y in 0..(li.real_y * li.real_z) {
                 if li.arr[x + y * li.real_x] == 1 {
                     draw_rectangle(
                         border_w + (x as f32) * block_size + pad,
@@ -452,10 +452,11 @@ async fn main() {
     //     .await
     //     .expect("Font loaded");
     let start = Instant::now();
+    let mut show_line = true;
     println!("Start");
     // let li = generate(9_usize, 9_usize);
-    let li = generate(51_usize, 31_usize);
-    // let li = generate(77_usize, 31_usize);
+    // let li = generate(51_usize, 31_usize);
+    let li = generate(77_usize, 31_usize);
     // let li = generate(331_usize, 201_usize);
     // let li = generate(77711_usize, 711_usize);
     // let li = _test_laby_v();
@@ -475,7 +476,15 @@ async fn main() {
         if is_key_down(KeyCode::Escape) {
             break;
         }
-        pll.paint_line_li();
+        if is_key_pressed(KeyCode::Space) {
+            show_line = ! show_line;
+        }
+
+        if show_line {
+            pll.paint_line_li();
+        } else {
+            paint_block_li(&li);
+        }
         next_frame().await
     }
 }
