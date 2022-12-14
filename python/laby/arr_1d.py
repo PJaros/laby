@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from random import choice, randint, randrange
-from time import clock
+import time
 import array
 
 
@@ -256,9 +256,9 @@ def default_generate_and_paint():
     sizeX, sizeY = 331, 201
     # sizeX, sizeY = 771, 311
     # sizeX, sizeY = 77711, 711
-    start = clock()
+    start = time.time()
     li = create_laby(sizeX, sizeY)
-    end = clock()
+    end = time.time()
     if li.sizeX * li.sizeY <= 77 * 31:
         print_laby(li)
     print("Berechnungszeit: %.5f" % (end - start))
